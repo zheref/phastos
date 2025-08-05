@@ -1,9 +1,13 @@
+import { render, Text } from 'npm:ink@4.4.1'
 import { Command } from '../../types/command.ts'
+
+const HelloComponent = () => <Text>Hello from Phastos! 👋</Text>
 
 export const helloCommand: Command = {
 	name: 'hello',
 	description: 'Prints a greeting message',
 	execute: () => {
-		console.log('Hello from Phastos')
+		render(<HelloComponent />)
 	},
+	component: HelloComponent,
 }

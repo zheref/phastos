@@ -1,6 +1,5 @@
 import { assertEquals } from '@std/assert'
-import { exampleCommand } from './index.ts'
-import { captureConsoleOutput } from '../../utils/test-utils.ts'
+import { exampleCommand } from './index.tsx'
 
 Deno.test('example command should have correct name', () => {
 	assertEquals(exampleCommand.name, 'example')
@@ -13,21 +12,12 @@ Deno.test('example command should have correct description', () => {
 	)
 })
 
-Deno.test('example command should execute without errors', () => {
-	exampleCommand.execute()
+Deno.test('example command should have a component', () => {
+	assertEquals(typeof exampleCommand.component, 'function')
 })
 
-Deno.test('example command should print expected output', () => {
-	const { output } = captureConsoleOutput(() => {
-		exampleCommand.execute()
-	})
-
-	const expectedOutput = `This is an example command!
-You can add any logic here:
-- API calls
-- File operations
-- Data processing
-- And much more!`
-
-	assertEquals(output, expectedOutput)
+Deno.test('example command component should be callable', () => {
+	const component = exampleCommand.component!
+	const result = component()
+	assertEquals(typeof result, 'object')
 })
