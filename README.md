@@ -33,6 +33,9 @@ deno task install
 # Print a greeting
 phastos hello
 
+# Show version
+phastos version
+
 # Show help
 phastos --help
 ```
@@ -40,35 +43,56 @@ phastos --help
 ### Available Commands
 
 - `hello` - Prints a greeting message
+- `version` - Shows the current version
+
+## Project Structure
+
+```
+phastos/
+├── main.ts              # Main CLI entry point
+├── types/
+│   └── command.ts       # Type definitions
+├── commands/
+│   ├── index.ts         # Command registry
+│   ├── hello.ts         # Hello command implementation
+│   └── version.ts       # Version command implementation
+└── utils/
+    └── cli.ts           # CLI utility functions
+```
 
 ## Adding New Commands
 
-To add new commands, edit the `main.ts` file and add new command definitions to the `commands` Map:
+The project is designed with a modular structure for easy extensibility. To add new commands:
+
+### 1. Create a new command file
+
+Create a new file in the `commands/` directory, e.g., `commands/mycommand.ts`:
 
 ```typescript
-commands.set("your-command", {
-  name: "your-command",
+import { Command } from "../types/command.ts";
+
+export const myCommand: Command = {
+  name: "mycommand",
   description: "Description of what your command does",
   execute: () => {
     // Your command logic here
     console.log("Your command output");
   },
-});
+};
 ```
 
-### Example: Adding a Version Command
+### 2. Register the command
+
+Add the import and registration to `commands/index.ts`:
 
 ```typescript
-commands.set("version", {
-  name: "version",
-  description: "Shows the current version",
-  execute: () => {
-    console.log("Phastos v1.0.0");
-  },
-});
+import { myCommand } from "./mycommand.ts";
+
+// Add this line with the other command registrations
+commands.set(myCommand.name, myCommand);
 ```
 
-After adding new commands, reinstall the CLI:
+### 3. Reinstall the CLI
 
 ```bash
 deno task install
