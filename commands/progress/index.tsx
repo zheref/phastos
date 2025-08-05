@@ -1,7 +1,5 @@
-/** @jsxImportSource react */
-
 import { Box, render, Text } from 'npm:ink@4.4.1'
-import { useEffect, useState } from 'npm:react@18.3.1'
+import React, { useEffect, useState } from 'npm:react@18.3.1'
 import { Command } from '../../types/command.ts'
 
 const ProgressComponent = () => {

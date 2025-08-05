@@ -1,7 +1,5 @@
-/** @jsxImportSource react */
-
 import { Box, render, Text, useApp, useInput } from 'npm:ink@4.4.1'
-import { useState } from 'npm:react@18.3.1'
+import React, { useState } from 'npm:react@18.3.1'
 import { Command } from '../../types/command.ts'
 
 const InteractiveComponent = () => {

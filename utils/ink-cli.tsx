@@ -1,7 +1,6 @@
-/** @jsxImportSource react */
-
 import { Box, render, Text } from 'npm:ink@4.4.1'
-import type { ReactElement } from 'npm:react@^19.1.1'
+import type { ReactElement } from 'npm:react@18.3.1'
+import React from 'npm:react@18.3.1'
 import type { Command } from '../types/command.ts'
 
 export function renderCommand(component: ReactElement): void {

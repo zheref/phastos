@@ -255,9 +255,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/assert@1",
-      "npm:ink@4.4.1",
-      "npm:react@18.3.1"
+      "jsr:@std/assert@1"
     ]
   }
 }
