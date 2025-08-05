@@ -46,6 +46,39 @@ phastos --help
 - `version` - Shows the current version
 - `example` - Demonstrates how to create custom commands
 
+## Development
+
+### Code Style
+
+This project follows modern JavaScript/TypeScript conventions:
+
+- **No semicolons** - Semicolons are discouraged and automatically removed
+- **Single quotes** - Use single quotes for strings
+- **Tab indentation** - Use tabs with 4-space width for indentation
+- **80 character line width** - For readability
+
+### Development Tasks
+
+```bash
+# Run in development mode with file watching
+deno task dev
+
+# Run tests
+deno task test
+
+# Run tests in watch mode
+deno task test:watch
+
+# Format code (removes semicolons, enforces style)
+deno task fmt
+
+# Check formatting without making changes
+deno task fmt:check
+
+# Lint code
+deno task lint
+```
+
 ## Project Structure
 
 ```
@@ -100,16 +133,16 @@ mkdir commands/mycommand
 Create `commands/mycommand/index.ts`:
 
 ```typescript
-import { Command } from "../../types/command.ts";
+import { Command } from '../../types/command.ts'
 
 export const myCommand: Command = {
-  name: "mycommand",
-  description: "Description of what your command does",
-  execute: () => {
-    // Your command logic here
-    console.log("Your command output");
-  },
-};
+	name: 'mycommand',
+	description: 'Description of what your command does',
+	execute: () => {
+		// Your command logic here
+		console.log('Your command output')
+	},
+}
 ```
 
 ### 3. Create tests for your command
@@ -117,21 +150,21 @@ export const myCommand: Command = {
 Create `commands/mycommand/mycommand.test.ts`:
 
 ```typescript
-import { assertEquals } from "@std/assert";
-import { myCommand } from "./index.ts";
-import { captureConsoleOutput } from "../../utils/test-utils.ts";
+import { assertEquals } from '@std/assert'
+import { myCommand } from './index.ts'
+import { captureConsoleOutput } from '../../utils/test-utils.ts'
 
-Deno.test("mycommand should have correct name", () => {
-  assertEquals(myCommand.name, "mycommand");
-});
+Deno.test('mycommand should have correct name', () => {
+	assertEquals(myCommand.name, 'mycommand')
+})
 
-Deno.test("mycommand should print expected output", () => {
-  const { output } = captureConsoleOutput(() => {
-    myCommand.execute();
-  });
-  
-  assertEquals(output, "Your command output");
-});
+Deno.test('mycommand should print expected output', () => {
+	const { output } = captureConsoleOutput(() => {
+		myCommand.execute()
+	})
+
+	assertEquals(output, 'Your command output')
+})
 ```
 
 ### 4. Register the command
@@ -139,24 +172,16 @@ Deno.test("mycommand should print expected output", () => {
 Add the import and registration to `commands/index.ts`:
 
 ```typescript
-import { myCommand } from "./mycommand/index.ts";
+import { myCommand } from './mycommand/index.ts'
 
 // Add this line with the other command registrations
-commands.set(myCommand.name, myCommand);
+commands.set(myCommand.name, myCommand)
 ```
 
 ### 5. Reinstall the CLI
 
 ```bash
 deno task install
-```
-
-## Development
-
-Run in development mode with file watching:
-
-```bash
-deno task dev
 ```
 
 ## Uninstallation
@@ -171,4 +196,4 @@ Or manually:
 
 ```bash
 deno uninstall phastos
-``` 
+```

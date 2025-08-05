@@ -1,3 +1,18 @@
 {
-    "deno.enable": true
+	"deno.enable": true,
+	"deno.lint": true,
+	"deno.unstable": false,
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "denoland.vscode-deno",
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "explicit",
+		"source.organizeImports": "explicit"
+	},
+	"typescript.preferences.quoteStyle": "single",
+	"javascript.preferences.quoteStyle": "single",
+	"typescript.preferences.semicolons": "remove",
+	"javascript.preferences.semicolons": "remove",
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4,
+	"editor.detectIndentation": false
 }

@@ -1,5 +1,5 @@
 export interface Command {
-  name: string;
-  description: string;
-  execute: () => void;
-} 
+	name: string
+	description: string
+	execute: () => void
+}
