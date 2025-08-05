@@ -1,4 +1,4 @@
-import { Command } from "../types/command.ts";
+import { Command } from "../../types/command.ts";
 
 export const helloCommand: Command = {
   name: "hello",

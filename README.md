@@ -44,32 +44,63 @@ phastos --help
 
 - `hello` - Prints a greeting message
 - `version` - Shows the current version
+- `example` - Demonstrates how to create custom commands
 
 ## Project Structure
 
 ```
 phastos/
-├── main.ts              # Main CLI entry point
+├── main.ts                    # Main CLI entry point
 ├── types/
-│   └── command.ts       # Type definitions
+│   └── command.ts            # Type definitions
 ├── commands/
-│   ├── index.ts         # Command registry
-│   ├── hello.ts         # Hello command implementation
-│   └── version.ts       # Version command implementation
+│   ├── index.ts              # Command registry
+│   ├── hello/
+│   │   ├── index.ts          # Hello command implementation
+│   │   └── hello.test.ts     # Hello command tests
+│   ├── version/
+│   │   ├── index.ts          # Version command implementation
+│   │   └── version.test.ts   # Version command tests
+│   └── example/
+│       ├── index.ts          # Example command implementation
+│       └── example.test.ts   # Example command tests
 └── utils/
-    └── cli.ts           # CLI utility functions
+    ├── cli.ts                # CLI utility functions
+    └── test-utils.ts         # Test utility functions
+```
+
+## Testing
+
+Run all tests:
+
+```bash
+deno task test
+```
+
+Run tests in watch mode:
+
+```bash
+deno task test:watch
 ```
 
 ## Adding New Commands
 
-The project is designed with a modular structure for easy extensibility. To add new commands:
+The project is designed with a modular structure for easy extensibility. Each command has its own subfolder with implementation and tests.
 
-### 1. Create a new command file
+### 1. Create a new command subfolder
 
-Create a new file in the `commands/` directory, e.g., `commands/mycommand.ts`:
+Create a new directory in `commands/`, e.g., `commands/mycommand/`:
+
+```bash
+mkdir commands/mycommand
+```
+
+### 2. Create the command implementation
+
+Create `commands/mycommand/index.ts`:
 
 ```typescript
-import { Command } from "../types/command.ts";
+import { Command } from "../../types/command.ts";
 
 export const myCommand: Command = {
   name: "mycommand",
@@ -81,18 +112,40 @@ export const myCommand: Command = {
 };
 ```
 
-### 2. Register the command
+### 3. Create tests for your command
+
+Create `commands/mycommand/mycommand.test.ts`:
+
+```typescript
+import { assertEquals } from "@std/assert";
+import { myCommand } from "./index.ts";
+import { captureConsoleOutput } from "../../utils/test-utils.ts";
+
+Deno.test("mycommand should have correct name", () => {
+  assertEquals(myCommand.name, "mycommand");
+});
+
+Deno.test("mycommand should print expected output", () => {
+  const { output } = captureConsoleOutput(() => {
+    myCommand.execute();
+  });
+  
+  assertEquals(output, "Your command output");
+});
+```
+
+### 4. Register the command
 
 Add the import and registration to `commands/index.ts`:
 
 ```typescript
-import { myCommand } from "./mycommand.ts";
+import { myCommand } from "./mycommand/index.ts";
 
 // Add this line with the other command registrations
 commands.set(myCommand.name, myCommand);
 ```
 
-### 3. Reinstall the CLI
+### 5. Reinstall the CLI
 
 ```bash
 deno task install
