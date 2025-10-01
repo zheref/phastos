@@ -1,0 +1,146 @@
+{
+	"version": "1.0",
+	"projects": [
+		{
+			"name": "MyAwesomeApp",
+			"workingDirectory": "./my-awesome-app",
+			"repositoryURL": "https://github.com/username/my-awesome-app.git",
+			"configuration": {
+				"defaultBranch": "main",
+				"savePreference": "stash",
+				"packageManager": "npm",
+				"defaultPlatform": "ios",
+				"defaultDevice": "iPhone 15",
+				"iosScheme": "MyAwesomeApp",
+				"androidFlavor": "development"
+			},
+			"customCommands": [
+				{
+					"alias": "cosmic-deploy",
+					"description": "Complete deployment workflow: clean, update, install, build, and test",
+					"operations": [
+						{
+							"type": "clean_slate",
+							"description": "Discard uncommitted changes"
+						},
+						{
+							"type": "update",
+							"description": "Pull latest changes from repository"
+						},
+						{
+							"type": "install",
+							"description": "Install npm dependencies"
+						},
+						{
+							"type": "pod_install",
+							"description": "Install iOS CocoaPods"
+						},
+						{
+							"type": "build",
+							"description": "Build for both platforms",
+							"parameters": {
+								"platform": "both",
+								"mode": "debug"
+							}
+						},
+						{
+							"type": "test",
+							"description": "Run test suite",
+							"parameters": {
+								"coverage": true
+							}
+						}
+					]
+				},
+				{
+					"alias": "quick-ios",
+					"description": "Quick iOS build and run",
+					"operations": [
+						{
+							"type": "install",
+							"description": "Install dependencies"
+						},
+						{
+							"type": "pod_install",
+							"description": "Install pods"
+						},
+						{
+							"type": "run",
+							"description": "Run on iOS simulator",
+							"parameters": {
+								"platform": "ios",
+								"device": "iPhone 15",
+								"mode": "debug"
+							}
+						}
+					]
+				},
+				{
+					"alias": "fresh-start",
+					"description": "Complete clean and reinstall",
+					"operations": [
+						{
+							"type": "custom",
+							"description": "Remove node_modules and pods",
+							"parameters": {
+								"command": "rm -rf node_modules ios/Pods ios/build android/build"
+							}
+						},
+						{
+							"type": "install",
+							"description": "Fresh npm install"
+						},
+						{
+							"type": "pod_install",
+							"description": "Fresh pod install"
+						},
+						{
+							"type": "reset",
+							"description": "Reset Metro bundler cache"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "AnotherProject",
+			"workingDirectory": "./another-project",
+			"repositoryURL": "https://github.com/username/another-project.git",
+			"configuration": {
+				"defaultBranch": "develop",
+				"savePreference": "branch",
+				"packageManager": "yarn",
+				"defaultPlatform": "android",
+				"defaultDevice": "Pixel_7_API_33"
+			},
+			"customCommands": [
+				{
+					"alias": "android-release",
+					"description": "Build Android release bundle",
+					"operations": [
+						{
+							"type": "save",
+							"description": "Save current work"
+						},
+						{
+							"type": "update",
+							"description": "Get latest code"
+						},
+						{
+							"type": "install",
+							"description": "Install dependencies"
+						},
+						{
+							"type": "build",
+							"description": "Build release",
+							"parameters": {
+								"platform": "android",
+								"mode": "release"
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

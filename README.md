@@ -1,114 +1,250 @@
-# Phastos CLI
+# Phastos 🚀
 
-A command-line tool for Phastos that can be run globally from anywhere. Enhanced with **Ink** for beautiful, interactive terminal interfaces using React components and JSX.
+**A powerful CLI for managing React Native projects with interactive workflows**
+
+Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Phastos brings the same seamless workflow automation to React Native development. Manage multiple projects, execute complex build sequences, and streamline your development process with beautiful interactive interfaces.
+
+> _"In the vast cosmos of code, every project is eternal"_
 
 ## Features
 
-- 🎨 **Beautiful UI** - Enhanced with Ink and React for modern terminal interfaces
-- 🎮 **Interactive Commands** - Real-time input handling and state management
-- 📊 **Progress Visualization** - Animated progress bars and status updates
-- 🎯 **Modular Architecture** - Easy to extend with new commands
-- 🧪 **Comprehensive Testing** - Full test coverage for all commands
-- 🚀 **Enhanced User Experience** - Better formatting and visual feedback
-
-## Setup
-
-```bash
-# Install Deno
-curl -fsSL https://deno.land/install.sh | sh
-# From source directory
-chmod +x main.ts
-```
+- 🎨 **Interactive Mode** - Beautiful terminal UI with project and operation selection
+- 🎯 **Direct Commands** - Quick execution of operations from the command line
+- 📦 **Multi-Project Management** - Configure and manage multiple React Native projects
+- 🔄 **Git Integration** - Built-in support for git workflows (stash, branch, pull)
+- 🛠️ **Custom Workflows** - Define complex operation sequences in nprojects.json
+- 🏗️ **MVC Architecture** - Clean, testable code structure inspired by ExpressJS
+- ⚡ **Fast & Lightweight** - Built with Deno for optimal performance
+- 🎨 **Beautiful UI** - Powered by Ink for modern terminal interfaces
 
 ## Installation
 
-To install the CLI globally:
+### Prerequisites
+
+- [Deno](https://deno.land/) 1.40+ installed
+- React Native development environment set up
+- Git (for repository operations)
+
+### Install Globally
 
 ```bash
-deno install --allow-env --allow-read --global --name phastos main.ts --config deno.json
-```
+# Clone the repository
+git clone https://github.com/zheref/phastos.git
+cd phastos
 
-Or use the provided task:
-
-```bash
+# Install globally
 deno task install
 ```
 
-## Usage
-
-### Basic Commands
+Or install directly from source:
 
 ```bash
-# Print a greeting with enhanced UI
-phastos hello
-
-# Show version with styled output
-phastos version
-
-# Show help with beautiful formatting
-phastos --help
-
-# Run interactive demo
-phastos interactive
-
-# Watch progress animation
-phastos progress
+deno install --allow-env --allow-read --allow-run --global --name phastos main.ts -f
 ```
 
-### Available Commands
+## Quick Start
 
-- `hello` - Prints a greeting message with enhanced styling
-- `version` - Shows the current version with beautiful formatting
-- `example` - Demonstrates how to create custom commands
-- `interactive` - Interactive counter demo with real-time input handling
-- `progress` - Animated progress bar demonstration
+### 1. Initialize Configuration
 
-## Enhanced UI Features
+Create a `nprojects.json` file in your workspace:
 
-### Interactive Commands
+```bash
+phastos init
+```
 
-The `interactive` command demonstrates real-time input handling:
+This creates a configuration file with a sample project. Edit `nprojects.json` to add your projects:
 
-- Press `+` to increment counter
-- Press `-` to decrement counter
-- Press `r` to reset counter
-- Press `h` to show a message
-- Press `c` to clear message
-- Press `q` to quit
+```json
+{
+  "version": "1.0",
+  "projects": [
+    {
+      "name": "MyApp",
+      "workingDirectory": "./my-app",
+      "repositoryURL": "https://github.com/username/my-app.git",
+      "configuration": {
+        "defaultBranch": "main",
+        "savePreference": "stash",
+        "packageManager": "npm",
+        "defaultPlatform": "ios"
+      }
+    }
+  ]
+}
+```
 
-### Progress Visualization
+### 2. Interactive Mode
 
-The `progress` command shows animated progress bars with:
+Launch interactive mode to visually select projects and operations:
 
-- Real-time progress updates with spinning indicators
-- Status messages that change based on progress
-- Visual progress bar with Unicode characters
-- Completion indicators
+```bash
+phastos
+```
 
-### Colored Output
+Navigate with arrow keys, select with Enter, and execute operations with beautiful progress indicators.
 
-All commands now feature:
+### 3. Direct Commands
 
-- Color-coded output for better readability
-- Bold text for emphasis
-- Dimmed text for secondary information
-- Consistent styling across all commands
+Execute operations directly from the command line:
+
+```bash
+# List all configured projects
+phastos list
+
+# Run an operation on a specific project
+phastos run build --project MyApp
+phastos run test --project MyApp
+phastos run cosmic-deploy --project MyApp
+
+# Get help
+phastos --help
+```
+
+## Core Operations
+
+Phastos provides these built-in operations for React Native projects:
+
+| Operation | Description |
+|-----------|-------------|
+| `clean_slate` | Discard all uncommitted changes (git reset + clean) |
+| `save` | Stash or branch uncommitted changes |
+| `update` | Pull latest changes from repository |
+| `install` | Install project dependencies (npm/yarn/pnpm/bun) |
+| `pod_install` | Install iOS CocoaPods dependencies |
+| `build` | Build the project for iOS/Android |
+| `test` | Run test suite |
+| `run` | Run app on simulator/emulator |
+| `reset` | Reset React Native Metro bundler cache |
+| `custom` | Execute custom shell commands |
+
+## Custom Commands
+
+Define complex workflows by chaining operations in `nprojects.json`:
+
+```json
+{
+  "customCommands": [
+    {
+      "alias": "cosmic-deploy",
+      "description": "Complete deployment workflow",
+      "operations": [
+        { "type": "clean_slate" },
+        { "type": "update" },
+        { "type": "install" },
+        { "type": "pod_install" },
+        {
+          "type": "build",
+          "parameters": { "platform": "both", "mode": "release" }
+        },
+        {
+          "type": "test",
+          "parameters": { "coverage": true }
+        }
+      ]
+    },
+    {
+      "alias": "quick-ios",
+      "description": "Quick iOS development setup",
+      "operations": [
+        { "type": "install" },
+        { "type": "pod_install" },
+        {
+          "type": "run",
+          "parameters": {
+            "platform": "ios",
+            "device": "iPhone 15"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Configuration Reference
+
+### Project Configuration
+
+```typescript
+{
+  "name": string,                    // Unique project identifier
+  "workingDirectory": string,        // Path to project (relative or absolute)
+  "repositoryURL"?: string,          // Git repository URL
+  "configuration": {
+    "defaultBranch": string,         // Default git branch (e.g., 'main')
+    "savePreference": "stash" | "branch",  // How to save changes
+    "packageManager"?: "npm" | "yarn" | "pnpm" | "bun",
+    "defaultPlatform"?: "ios" | "android" | "both",
+    "defaultDevice"?: string,        // Simulator/emulator name
+    "iosScheme"?: string,            // iOS build scheme
+    "androidFlavor"?: string         // Android build variant
+  },
+  "customCommands"?: CustomCommand[]
+}
+```
+
+### Operation Parameters
+
+Operations can be customized with parameters:
+
+```json
+{
+  "type": "run",
+  "description": "Run on iPhone 15",
+  "parameters": {
+    "platform": "ios",
+    "device": "iPhone 15",
+    "mode": "debug"
+  }
+}
+```
+
+Available parameters:
+- `platform`: `"ios" | "android" | "both"`
+- `device`: Simulator/emulator name
+- `mode`: `"debug" | "release"`
+- `packageManager`: `"npm" | "yarn" | "pnpm" | "bun"`
+- `testFile`: Specific test file path
+- `coverage`: Enable coverage report (boolean)
+- `command`: Shell command (for custom operations)
+- `verbose`: Verbose output (boolean)
+
+## Architecture
+
+Phastos follows an MVC architectural pattern similar to ExpressJS:
+
+```
+phastos/
+├── models/          # Data structures (Project, Operation, etc.)
+├── views/           # Ink-based UI components
+├── controllers/     # Business logic and operation orchestration
+├── services/        # External interactions (Git, React Native, File I/O)
+├── commands/        # CLI command implementations
+└── types/           # TypeScript type definitions
+```
+
+### Key Components
+
+- **Models** (`models/`) - Define data structures for projects and operations
+- **Services** (`services/`) - Handle external operations (Git, React Native CLI, File I/O)
+- **Controllers** (`controllers/`) - Orchestrate operations using services
+- **Views** (`views/`) - Interactive terminal UI components using Ink
+- **Commands** (`commands/`) - Individual CLI command implementations
 
 ## Development
 
-### Code Style
+### Prerequisites
 
-This project follows modern JavaScript/TypeScript conventions:
+- Deno 1.40+
+- Node.js (for React Native operations)
 
-- **No semicolons** - Semicolons are discouraged and automatically removed
-- **Single quotes** - Use single quotes for strings
-- **Tab indentation** - Use tabs with 4-space width for indentation
-- **80 character line width** - For readability
-- **JSX Support** - Full React JSX support for Ink components
-
-### Development Tasks
+### Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/zheref/phastos.git
+cd phastos
+
 # Run in development mode with file watching
 deno task dev
 
@@ -118,154 +254,171 @@ deno task test
 # Run tests in watch mode
 deno task test:watch
 
-# Format code (removes semicolons, enforces style)
+# Format code (enforces style: no semicolons, tabs, single quotes)
 deno task fmt
-
-# Check formatting without making changes
-deno task fmt:check
 
 # Lint code
 deno task lint
 ```
 
+### Code Style
+
+This project follows strict formatting conventions:
+
+- **No semicolons** - Automatically removed
+- **Single quotes** - For string literals
+- **Tab indentation** - 4-space width
+- **80 character line width**
+- **JSX/TSX support** - Full React component support
+
+### Running Tests
+
+```bash
+# All tests
+deno task test
+
+# Specific test file
+deno test commands/list/list.test.ts --allow-env --allow-read
+
+# Watch mode
+deno task test:watch
+```
+
+### Adding New Operations
+
+1. Add operation type to `models/Project.ts`:
+```typescript
+export type OperationType =
+  | 'existing_types'
+  | 'my_new_operation'
+```
+
+2. Implement handler in `controllers/OperationController.ts`:
+```typescript
+case 'my_new_operation':
+  return await this.myNewOperation(workingDir, parameters)
+```
+
+3. Add service method if needed in `services/`
+
+### Adding New Commands
+
+1. Create command directory: `commands/mycommand/`
+2. Implement command in `commands/mycommand/index.tsx`
+3. Add tests in `commands/mycommand/mycommand.test.ts`
+4. Register in `commands/index.ts`
+
+See existing commands for examples.
+
 ## Project Structure
 
 ```
 phastos/
-├── main.ts                    # Main CLI entry point
-├── types/
-│   └── command.ts            # Type definitions with React component support
-├── commands/
-│   ├── index.ts              # Command registry
-│   ├── hello/
-│   │   ├── index.tsx         # Hello command with Ink components
-│   │   └── hello.test.ts     # Hello command tests
-│   ├── version/
-│   │   ├── index.tsx         # Version command with Ink components
-│   │   └── version.test.ts   # Version command tests
-│   ├── example/
-│   │   ├── index.tsx         # Example command with Ink components
-│   │   └── example.test.ts   # Example command tests
-│   ├── interactive/
-│   │   └── index.tsx         # Interactive command with state management
-│   └── progress/
-│       └── index.tsx         # Progress bar command with animations
-└── utils/
-    ├── cli.ts                # Legacy CLI utility functions
-    ├── ink-cli.tsx           # Ink-based CLI utility functions
-    └── test-utils.ts         # Test utility functions
+├── commands/              # CLI commands
+│   ├── init/             # Initialize nprojects.json
+│   ├── list/             # List projects
+│   ├── run/              # Execute operations
+│   └── [demo commands]/  # Example commands
+├── controllers/          # Operation orchestration
+│   └── OperationController.ts
+├── models/               # Data models
+│   └── Project.ts
+├── services/             # External services
+│   ├── GitService.ts
+│   ├── ReactNativeService.ts
+│   └── ProjectLoader.ts
+├── views/                # UI components
+│   └── InteractiveView.tsx
+├── types/                # TypeScript types
+│   └── command.ts
+├── utils/                # Utility functions
+├── main.ts               # Entry point
+├── deno.json             # Deno configuration
+└── nprojects.example.json # Example configuration
 ```
 
-## Adding New Commands with Ink
+## Examples
 
-The project now supports React components for enhanced UI. Here's how to create a new command with Ink:
+### Example nprojects.json
 
-### 1. Create a new command subfolder
+See `nprojects.example.json` for a complete configuration example with:
+- Multiple projects
+- Custom workflows
+- Platform-specific configurations
+- Advanced operation sequences
 
-Create a new directory in `commands/`, e.g., `commands/mycommand/`:
+### Common Workflows
 
+**Fresh Start (Clean Install)**
 ```bash
-mkdir commands/mycommand
+phastos run fresh-start --project MyApp
 ```
 
-### 2. Create the command implementation with Ink
-
-Create `commands/mycommand/index.tsx`:
-
-```typescript
-import { Box, render, Text } from 'npm:ink@4.4.1'
-import { Command } from '../../types/command.ts'
-
-const MyCommandComponent = () => (
-	<Box flexDirection='column' padding={1}>
-		<Box marginBottom={1}>
-			<Text bold color='green'>
-				My Command Output 🚀
-			</Text>
-		</Box>
-
-		<Box>
-			<Text>This is rendered with Ink and React!</Text>
-		</Box>
-	</Box>
-)
-
-export const myCommand: Command = {
-	name: 'mycommand',
-	description: 'Description of what your command does',
-	execute: () => {
-		render(<MyCommandComponent />)
-	},
-	component: MyCommandComponent,
-}
-```
-
-### 3. Create tests for your command
-
-Create `commands/mycommand/mycommand.test.ts`:
-
-```typescript
-import { assertEquals } from '@std/assert'
-import { myCommand } from './index.tsx'
-
-Deno.test('mycommand should have correct name', () => {
-	assertEquals(myCommand.name, 'mycommand')
-})
-
-Deno.test('mycommand should have a component', () => {
-	assertEquals(typeof myCommand.component, 'function')
-})
-```
-
-### 4. Register the command
-
-Add the import and registration to `commands/index.ts`:
-
-```typescript
-import { myCommand } from './mycommand/index.tsx'
-
-// Add this line with the other command registrations
-commands.set(myCommand.name, myCommand)
-```
-
-### 5. Reinstall the CLI
-
+**Quick iOS Development**
 ```bash
-deno install --allow-env --allow-read --global --name phastos main.ts -f --config deno.json
+phastos run quick-ios --project MyApp
 ```
 
-## Dependencies
-
-This project uses:
-
-- **Deno** - Runtime and package manager
-- **Ink** - React for interactive command-line apps
-- **React** - UI library for component-based development
-
-## Testing
-
-Run all tests:
-
+**Release Build**
 ```bash
-deno task test
+phastos run android-release --project MyApp
 ```
 
-Run tests in watch mode:
+## Comparison with Alars
 
+| Feature | Alars (Xcode) | Phastos (React Native) |
+|---------|---------------|------------------------|
+| Platform | Swift/Xcode | React Native |
+| Config File | xprojects.json | nprojects.json |
+| Build System | Xcode Build | React Native CLI |
+| Package Manager | CocoaPods | npm/yarn/pnpm/bun |
+| Runtime | Swift | Deno |
+| UI Framework | Swift TUI | Ink (React) |
+
+## Troubleshooting
+
+### "No nprojects.json found"
+Run `phastos init` to create a configuration file.
+
+### Permission Denied
+Ensure Deno has the required permissions:
 ```bash
-deno task test:watch
+deno install --allow-env --allow-read --allow-run --global --name phastos main.ts -f
 ```
 
-## Uninstallation
+### Operation Fails
+- Check that your project paths are correct in nprojects.json
+- Ensure React Native CLI is properly installed
+- Verify Git repository is initialized (for git operations)
 
-To uninstall the CLI:
+## Contributing
 
-```bash
-deno task uninstall
-```
+Contributions are welcome! Please:
 
-Or manually:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes (follow code style)
+4. Add tests for new functionality
+5. Run `deno task fmt` and `deno task test`
+6. Submit a pull request
 
-```bash
-deno uninstall phastos
-```
+## License
+
+MIT License - see LICENSE file for details
+
+## Acknowledgments
+
+- Inspired by [Alars](https://github.com/zheref/Alars) by zheref
+- Built with [Deno](https://deno.land/)
+- UI powered by [Ink](https://github.com/vadimdemedes/ink)
+- React Native community for ecosystem tools
+
+## Support
+
+- 📖 [Documentation](https://github.com/zheref/phastos/wiki)
+- 🐛 [Issue Tracker](https://github.com/zheref/phastos/issues)
+- 💬 [Discussions](https://github.com/zheref/phastos/discussions)
+
+---
+
+**Made with ❤️ for the React Native community**
