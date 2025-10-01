@@ -1,21 +1,22 @@
-#!/usr/bin/env -S deno run --allow-env --allow-read --allow-run
-
+#!/usr/bin/env -S deno run --allow-env --allow-read --allow-write --allow-run
 /**
  * Phastos - React Native Project Manager
  * Main entry point for the CLI
  *
  * Inspired by Alars (Swift/Xcode project manager)
  * Provides interactive and direct command modes for managing React Native projects
+ *
+ * @jsxImportSource npm:react@18.3.1
  */
-
+import React from 'npm:react@18.3.1'
+import { Box, render, Text } from 'npm:ink@4.4.1'
 import { commands } from './commands/index.ts'
 import { renderInteractiveView } from './views/InteractiveView.tsx'
+import { renderInitPrompt } from './views/InitPromptView.tsx'
 import {
 	projectLoader,
 	ProjectLoadError,
 } from './services/ProjectLoader.ts'
-import { Box, render, Text } from 'npm:ink@4.4.1'
-import React from 'npm:react@18.3.1'
 
 /**
  * Renders help/usage information
@@ -46,7 +47,7 @@ function showHelp(): void {
 				<Text bold>Commands:</Text>
 				<Box marginLeft={2} flexDirection='column'>
 					<Text>
-						<Text color='green'>init</Text> - Create a new nprojects.json file
+						<Text color='green'>init</Text> - Create a new node_projects.json file
 					</Text>
 					<Text>
 						<Text color='green'>list</Text> - List all configured projects
@@ -79,7 +80,7 @@ function showHelp(): void {
 					<Text>• run - Run on simulator/emulator</Text>
 					<Text>• reset - Reset React Native cache</Text>
 					<Text>• pod_install - Install iOS CocoaPods</Text>
-					<Text dimColor>• Plus any custom commands from nprojects.json</Text>
+					<Text dimColor>• Plus any custom commands from node_projects.json</Text>
 				</Box>
 			</Box>
 		</Box>
@@ -94,28 +95,70 @@ function showHelp(): void {
 async function main(): Promise<void> {
 	const args = Deno.args
 
-	// Show help
-	if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-		// If no nprojects.json exists, show help
-		// Otherwise, launch interactive mode
+	// Handle no arguments (interactive mode or init prompt)
+	if (args.length === 0) {
 		try {
 			const config = await projectLoader.load()
-
 			// Launch interactive mode
-			if (args.length === 0) {
-				renderInteractiveView(config)
-				return
-			}
+			await renderInteractiveView(config)
+			return
 		} catch (error) {
 			if (error instanceof ProjectLoadError) {
-				// No config file, show help
-				showHelp()
+				// No config file found - offer to create one (like Alars)
+				await renderInitPrompt(
+					async (projectName: string) => {
+						try {
+							const configPath =
+								await projectLoader.createDefaultConfig(
+									projectName,
+								)
+
+							const SuccessComponent = () => (
+								<Box flexDirection='column' padding={1}>
+									<Box marginBottom={1}>
+										<Text bold color='green'>
+											✓ node_projects.json created!
+										</Text>
+									</Box>
+									<Box>
+										<Text>
+											Run 'phastos' again to start
+											interactive mode
+										</Text>
+									</Box>
+								</Box>
+							)
+
+							render(<SuccessComponent />)
+						} catch (err) {
+							const ErrorComponent = () => (
+								<Box padding={1}>
+									<Text bold color='red'>
+										✗ Failed to create config:{' '}
+										{err instanceof Error
+											? err.message
+											: 'Unknown error'}
+									</Text>
+								</Box>
+							)
+
+							render(<ErrorComponent />)
+							Deno.exit(1)
+						}
+					},
+					() => {
+						// User cancelled - show help
+						showHelp()
+					},
+				)
 				return
 			}
 			throw error
 		}
+	}
 
-		// Explicit help request
+	// Explicit help request
+	if (args[0] === '--help' || args[0] === '-h') {
 		showHelp()
 		return
 	}

@@ -99,9 +99,9 @@ export interface Project {
 }
 
 /**
- * Root configuration object for nprojects.json
+ * Root configuration object for node_projects.json
  */
-export interface NProjectsConfig {
+export interface NodeProjectsConfig {
 	version?: string // Config file version for future compatibility
 	projects: Project[]
 }

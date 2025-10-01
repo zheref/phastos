@@ -1,10 +1,10 @@
+/** @jsxImportSource npm:react@18.3.1 */
 /**
  * Init Command
- * Initializes a new nprojects.json file
+ * Initializes a new node_projects.json file
  */
-
-import { Box, render, Text } from 'npm:ink@4.4.1'
 import React from 'npm:react@18.3.1'
+import { Box, render, Text } from 'npm:ink@4.4.1'
 import type { Command } from '../../types/command.ts'
 import { projectLoader } from '../../services/ProjectLoader.ts'
 
@@ -15,7 +15,7 @@ const SuccessComponent = ({ path }: { path: string }) => (
 	<Box flexDirection='column' padding={1}>
 		<Box marginBottom={1}>
 			<Text bold color='green'>
-				✓ nprojects.json created successfully!
+				✓ node_projects.json created successfully!
 			</Text>
 		</Box>
 
@@ -26,7 +26,7 @@ const SuccessComponent = ({ path }: { path: string }) => (
 		<Box flexDirection='column' marginTop={1}>
 			<Text dimColor>Next steps:</Text>
 			<Box marginLeft={2}>
-				<Text>1. Edit nprojects.json to configure your projects</Text>
+				<Text>1. Edit node_projects.json to configure your projects</Text>
 			</Box>
 			<Box marginLeft={2}>
 				<Text>2. Run 'phastos' to start interactive mode</Text>
@@ -54,7 +54,7 @@ const ErrorComponent = ({ error }: { error: string }) => (
  */
 export const initCommand: Command = {
 	name: 'init',
-	description: 'Creates a new nprojects.json configuration file',
+	description: 'Creates a new node_projects.json configuration file',
 	execute: async () => {
 		try {
 			// Get project name from args if provided

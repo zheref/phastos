@@ -12,7 +12,7 @@ Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Ph
 - 🎯 **Direct Commands** - Quick execution of operations from the command line
 - 📦 **Multi-Project Management** - Configure and manage multiple React Native projects
 - 🔄 **Git Integration** - Built-in support for git workflows (stash, branch, pull)
-- 🛠️ **Custom Workflows** - Define complex operation sequences in nprojects.json
+- 🛠️ **Custom Workflows** - Define complex operation sequences in node_projects.json
 - 🏗️ **MVC Architecture** - Clean, testable code structure inspired by ExpressJS
 - ⚡ **Fast & Lightweight** - Built with Deno for optimal performance
 - 🎨 **Beautiful UI** - Powered by Ink for modern terminal interfaces
@@ -39,37 +39,37 @@ deno task install
 Or install directly from source:
 
 ```bash
-deno install --allow-env --allow-read --allow-run --global --name phastos main.ts -f
+deno install --allow-env --allow-read --allow-write --allow-run --global --name phastos --config deno.json main.tsx -f
 ```
 
 ## Quick Start
 
 ### 1. Initialize Configuration
 
-Create a `nprojects.json` file in your workspace:
+Create a `node_projects.json` file in your workspace:
 
 ```bash
 phastos init
 ```
 
-This creates a configuration file with a sample project. Edit `nprojects.json` to add your projects:
+This creates a configuration file with a sample project. Edit `node_projects.json` to add your projects:
 
 ```json
 {
-  "version": "1.0",
-  "projects": [
-    {
-      "name": "MyApp",
-      "workingDirectory": "./my-app",
-      "repositoryURL": "https://github.com/username/my-app.git",
-      "configuration": {
-        "defaultBranch": "main",
-        "savePreference": "stash",
-        "packageManager": "npm",
-        "defaultPlatform": "ios"
-      }
-    }
-  ]
+	"version": "1.0",
+	"projects": [
+		{
+			"name": "MyApp",
+			"workingDirectory": "./my-app",
+			"repositoryURL": "https://github.com/username/my-app.git",
+			"configuration": {
+				"defaultBranch": "main",
+				"savePreference": "stash",
+				"packageManager": "npm",
+				"defaultPlatform": "ios"
+			}
+		}
+	]
 }
 ```
 
@@ -104,60 +104,60 @@ phastos --help
 
 Phastos provides these built-in operations for React Native projects:
 
-| Operation | Description |
-|-----------|-------------|
+| Operation     | Description                                         |
+| ------------- | --------------------------------------------------- |
 | `clean_slate` | Discard all uncommitted changes (git reset + clean) |
-| `save` | Stash or branch uncommitted changes |
-| `update` | Pull latest changes from repository |
-| `install` | Install project dependencies (npm/yarn/pnpm/bun) |
-| `pod_install` | Install iOS CocoaPods dependencies |
-| `build` | Build the project for iOS/Android |
-| `test` | Run test suite |
-| `run` | Run app on simulator/emulator |
-| `reset` | Reset React Native Metro bundler cache |
-| `custom` | Execute custom shell commands |
+| `save`        | Stash or branch uncommitted changes                 |
+| `update`      | Pull latest changes from repository                 |
+| `install`     | Install project dependencies (npm/yarn/pnpm/bun)    |
+| `pod_install` | Install iOS CocoaPods dependencies                  |
+| `build`       | Build the project for iOS/Android                   |
+| `test`        | Run test suite                                      |
+| `run`         | Run app on simulator/emulator                       |
+| `reset`       | Reset React Native Metro bundler cache              |
+| `custom`      | Execute custom shell commands                       |
 
 ## Custom Commands
 
-Define complex workflows by chaining operations in `nprojects.json`:
+Define complex workflows by chaining operations in `node_projects.json`:
 
 ```json
 {
-  "customCommands": [
-    {
-      "alias": "cosmic-deploy",
-      "description": "Complete deployment workflow",
-      "operations": [
-        { "type": "clean_slate" },
-        { "type": "update" },
-        { "type": "install" },
-        { "type": "pod_install" },
-        {
-          "type": "build",
-          "parameters": { "platform": "both", "mode": "release" }
-        },
-        {
-          "type": "test",
-          "parameters": { "coverage": true }
-        }
-      ]
-    },
-    {
-      "alias": "quick-ios",
-      "description": "Quick iOS development setup",
-      "operations": [
-        { "type": "install" },
-        { "type": "pod_install" },
-        {
-          "type": "run",
-          "parameters": {
-            "platform": "ios",
-            "device": "iPhone 15"
-          }
-        }
-      ]
-    }
-  ]
+	"customCommands": [
+		{
+			"alias": "cosmic-deploy",
+			"description": "Complete deployment workflow",
+			"operations": [
+				{ "type": "clean_slate" },
+				{ "type": "update" },
+				{ "type": "install" },
+				{ "type": "pod_install" },
+				{
+					"type": "build",
+					"parameters": { "platform": "both", "mode": "release" }
+				},
+				{
+					"type": "test",
+					"parameters": { "coverage": true }
+				}
+			]
+		},
+		{
+			"alias": "quick-ios",
+			"description": "Quick iOS development setup",
+			"operations": [
+				{ "type": "install" },
+				{ "type": "pod_install" },
+				{
+					"type": "run",
+					"parameters": {
+						"platform": "ios",
+						"device": "iPhone 15"
+					}
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -189,17 +189,18 @@ Operations can be customized with parameters:
 
 ```json
 {
-  "type": "run",
-  "description": "Run on iPhone 15",
-  "parameters": {
-    "platform": "ios",
-    "device": "iPhone 15",
-    "mode": "debug"
-  }
+	"type": "run",
+	"description": "Run on iPhone 15",
+	"parameters": {
+		"platform": "ios",
+		"device": "iPhone 15",
+		"mode": "debug"
+	}
 }
 ```
 
 Available parameters:
+
 - `platform`: `"ios" | "android" | "both"`
 - `device`: Simulator/emulator name
 - `mode`: `"debug" | "release"`
@@ -287,13 +288,15 @@ deno task test:watch
 ### Adding New Operations
 
 1. Add operation type to `models/Project.ts`:
+
 ```typescript
 export type OperationType =
-  | 'existing_types'
-  | 'my_new_operation'
+	| 'existing_types'
+	| 'my_new_operation'
 ```
 
 2. Implement handler in `controllers/OperationController.ts`:
+
 ```typescript
 case 'my_new_operation':
   return await this.myNewOperation(workingDir, parameters)
@@ -315,7 +318,7 @@ See existing commands for examples.
 ```
 phastos/
 ├── commands/              # CLI commands
-│   ├── init/             # Initialize nprojects.json
+│   ├── init/             # Initialize node_projects.json
 │   ├── list/             # List projects
 │   ├── run/              # Execute operations
 │   └── [demo commands]/  # Example commands
@@ -334,14 +337,15 @@ phastos/
 ├── utils/                # Utility functions
 ├── main.ts               # Entry point
 ├── deno.json             # Deno configuration
-└── nprojects.example.json # Example configuration
+└── node_projects.example.json # Example configuration
 ```
 
 ## Examples
 
-### Example nprojects.json
+### Example node_projects.json
 
-See `nprojects.example.json` for a complete configuration example with:
+See `node_projects.example.json` for a complete configuration example with:
+
 - Multiple projects
 - Custom workflows
 - Platform-specific configurations
@@ -350,44 +354,51 @@ See `nprojects.example.json` for a complete configuration example with:
 ### Common Workflows
 
 **Fresh Start (Clean Install)**
+
 ```bash
 phastos run fresh-start --project MyApp
 ```
 
 **Quick iOS Development**
+
 ```bash
 phastos run quick-ios --project MyApp
 ```
 
 **Release Build**
+
 ```bash
 phastos run android-release --project MyApp
 ```
 
 ## Comparison with Alars
 
-| Feature | Alars (Xcode) | Phastos (React Native) |
-|---------|---------------|------------------------|
-| Platform | Swift/Xcode | React Native |
-| Config File | xprojects.json | nprojects.json |
-| Build System | Xcode Build | React Native CLI |
-| Package Manager | CocoaPods | npm/yarn/pnpm/bun |
-| Runtime | Swift | Deno |
-| UI Framework | Swift TUI | Ink (React) |
+| Feature         | Alars (Xcode)  | Phastos (React Native) |
+| --------------- | -------------- | ---------------------- |
+| Platform        | Swift/Xcode    | React Native           |
+| Config File     | xprojects.json | node_projects.json         |
+| Build System    | Xcode Build    | React Native CLI       |
+| Package Manager | CocoaPods      | npm/yarn/pnpm/bun      |
+| Runtime         | Swift          | Deno                   |
+| UI Framework    | Swift TUI      | Ink (React)            |
 
 ## Troubleshooting
 
-### "No nprojects.json found"
+### "No node_projects.json found"
+
 Run `phastos init` to create a configuration file.
 
 ### Permission Denied
+
 Ensure Deno has the required permissions:
+
 ```bash
-deno install --allow-env --allow-read --allow-run --global --name phastos main.ts -f
+deno install --allow-env --allow-read --allow-write --allow-run --global --name phastos --config deno.json main.tsx -f
 ```
 
 ### Operation Fails
-- Check that your project paths are correct in nprojects.json
+
+- Check that your project paths are correct in node_projects.json
 - Ensure React Native CLI is properly installed
 - Verify Git repository is initialized (for git operations)
 

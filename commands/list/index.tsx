@@ -1,10 +1,10 @@
+/** @jsxImportSource npm:react@18.3.1 */
 /**
  * List Command
- * Lists all projects from nprojects.json
+ * Lists all projects from node_projects.json
  */
-
-import { Box, render, Text } from 'npm:ink@4.4.1'
 import React from 'npm:react@18.3.1'
+import { Box, render, Text } from 'npm:ink@4.4.1'
 import type { Command } from '../../types/command.ts'
 import {
 	projectLoader,
@@ -75,7 +75,7 @@ const ErrorComponent = ({ error }: { error: string }) => (
  */
 export const listCommand: Command = {
 	name: 'list',
-	description: 'Lists all projects from nprojects.json',
+	description: 'Lists all projects from node_projects.json',
 	execute: async () => {
 		try {
 			const config = await projectLoader.load()

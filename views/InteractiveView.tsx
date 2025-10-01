@@ -1,16 +1,16 @@
+/** @jsxImportSource npm:react@18.3.1 */
 /**
  * InteractiveView
  * Provides interactive UI for project selection and operation execution
  * Uses Ink for beautiful terminal interfaces
  */
-
+import React, { useState } from 'npm:react@18.3.1'
 import { Box, render, Text, useApp, useInput } from 'npm:ink@4.4.1'
 import SelectInput from 'npm:ink-select-input@6.0.0'
 import Spinner from 'npm:ink-spinner@5.0.0'
-import React, { useState } from 'npm:react@18.3.1'
 import type {
 	CustomCommand,
-	NProjectsConfig,
+	NodeProjectsConfig,
 	Project,
 } from '../models/Project.ts'
 import {
@@ -22,7 +22,7 @@ import {
  * Props for InteractiveView component
  */
 interface InteractiveViewProps {
-	config: NProjectsConfig
+	config: NodeProjectsConfig
 }
 
 /**
@@ -322,6 +322,11 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
  * Renders the interactive view
  * @param config - Projects configuration
  */
-export function renderInteractiveView(config: NProjectsConfig): void {
-	render(<InteractiveViewComponent config={config} />)
+export async function renderInteractiveView(
+	config: NodeProjectsConfig,
+): Promise<void> {
+	const { waitUntilExit } = render(
+		<InteractiveViewComponent config={config} />,
+	)
+	await waitUntilExit()
 }

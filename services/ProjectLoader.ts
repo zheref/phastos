@@ -1,12 +1,12 @@
 /**
  * ProjectLoader
- * Responsible for loading and validating nprojects.json configuration
+ * Responsible for loading and validating node_projects.json configuration
  * Provides utilities for finding and managing project configurations
  */
 
 import type {
 	DEFAULT_PROJECT_CONFIG,
-	NProjectsConfig,
+	NodeProjectsConfig,
 	Project,
 } from '../models/Project.ts'
 import { join } from 'jsr:@std/path@1.0.8'
@@ -25,12 +25,12 @@ export class ProjectLoadError extends Error {
  * Service class for loading project configurations
  */
 export class ProjectLoader {
-	private static readonly CONFIG_FILE_NAME = 'nprojects.json'
+	private static readonly CONFIG_FILE_NAME = 'node_projects.json'
 
 	/**
-	 * Finds the nprojects.json file by searching up the directory tree
+	 * Finds the node_projects.json file by searching up the directory tree
 	 * @param startPath - Starting directory path (defaults to current directory)
-	 * @returns Path to nprojects.json or null if not found
+	 * @returns Path to node_projects.json or null if not found
 	 */
 	async findConfigFile(startPath?: string): Promise<string | null> {
 		let currentPath = startPath || Deno.cwd()
@@ -66,12 +66,12 @@ export class ProjectLoader {
 	}
 
 	/**
-	 * Loads and parses the nprojects.json configuration
-	 * @param configPath - Path to nprojects.json (optional, will search if not provided)
+	 * Loads and parses the node_projects.json configuration
+	 * @param configPath - Path to node_projects.json (optional, will search if not provided)
 	 * @returns Parsed configuration object
 	 * @throws ProjectLoadError if file not found or invalid
 	 */
-	async load(configPath?: string): Promise<NProjectsConfig> {
+	async load(configPath?: string): Promise<NodeProjectsConfig> {
 		try {
 			// Find config file if path not provided
 			const path = configPath || (await this.findConfigFile())
@@ -84,7 +84,7 @@ export class ProjectLoader {
 
 			// Read and parse file
 			const content = await Deno.readTextFile(path)
-			const config = JSON.parse(content) as NProjectsConfig
+			const config = JSON.parse(content) as NodeProjectsConfig
 
 			// Validate configuration
 			this.validate(config)
@@ -109,11 +109,11 @@ export class ProjectLoader {
 	}
 
 	/**
-	 * Validates the nprojects.json configuration structure
+	 * Validates the node_projects.json configuration structure
 	 * @param config - Configuration object to validate
 	 * @throws ProjectLoadError if configuration is invalid
 	 */
-	private validate(config: NProjectsConfig): void {
+	private validate(config: NodeProjectsConfig): void {
 		if (!config.projects || !Array.isArray(config.projects)) {
 			throw new ProjectLoadError(
 				'Invalid configuration: "projects" array is required',
@@ -241,7 +241,7 @@ export class ProjectLoader {
 	 * @returns Project or null if not found
 	 */
 	findProject(
-		config: NProjectsConfig,
+		config: NodeProjectsConfig,
 		projectName: string,
 	): Project | null {
 		return (
@@ -250,7 +250,7 @@ export class ProjectLoader {
 	}
 
 	/**
-	 * Creates a default nprojects.json file in the current directory
+	 * Creates a default node_projects.json file in the current directory
 	 * @param projectName - Name for the initial project
 	 * @param workingDirectory - Working directory path
 	 * @returns Path to created config file
@@ -274,7 +274,7 @@ export class ProjectLoader {
 			}
 		}
 
-		const defaultConfig: NProjectsConfig = {
+		const defaultConfig: NodeProjectsConfig = {
 			version: '1.0',
 			projects: [
 				{
@@ -335,7 +335,7 @@ export class ProjectLoader {
 	 * @param configPath - Path where to save (defaults to current directory)
 	 */
 	async save(
-		config: NProjectsConfig,
+		config: NodeProjectsConfig,
 		configPath?: string,
 	): Promise<void> {
 		const path =

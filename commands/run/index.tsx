@@ -1,11 +1,11 @@
+/** @jsxImportSource npm:react@18.3.1 */
 /**
  * Run Command
  * Executes operations on a specific project
  */
-
+import React, { useEffect, useState } from 'npm:react@18.3.1'
 import { Box, render, Text } from 'npm:ink@4.4.1'
 import Spinner from 'npm:ink-spinner@5.0.0'
-import React, { useEffect, useState } from 'npm:react@18.3.1'
 import type { Command } from '../../types/command.ts'
 import {
 	projectLoader,
