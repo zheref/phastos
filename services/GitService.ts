@@ -107,9 +107,7 @@ export class GitService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -124,22 +122,20 @@ export class GitService {
 	async saveChanges(
 		workingDirectory: string,
 		preference: SavePreference,
-		branchName?: string,
+		stashName: string = `Phastos auto-stash ${new Date().toISOString()}`,
+		branchName: string | undefined = undefined,
 	): Promise<GitOperationResult> {
 		try {
 			if (preference === 'stash') {
-				return await this.stashChanges(workingDirectory)
+				return await this.stashChanges(workingDirectory, stashName)
 			} else {
-				const name =
-					branchName || `wip-${Date.now()}`
+				const name = branchName || `wip-${Date.now()}`
 				return await this.createBranch(workingDirectory, name)
 			}
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -151,6 +147,7 @@ export class GitService {
 	 */
 	private async stashChanges(
 		workingDirectory: string,
+		stashName?: string,
 	): Promise<GitOperationResult> {
 		try {
 			const command = new Deno.Command('git', {
@@ -180,9 +177,7 @@ export class GitService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -219,9 +214,7 @@ export class GitService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -278,9 +271,7 @@ export class GitService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -343,9 +334,7 @@ export class GitService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}

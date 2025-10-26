@@ -26,6 +26,12 @@ export interface OperationResult {
  * Controller for executing operations on projects
  */
 export class OperationController {
+	private printMsg?: (msg: string) => void
+
+	constructor(printMsg?: (msg: string) => void) {
+		this.printMsg = printMsg
+	}
+
 	/**
 	 * Executes a single operation on a project
 	 * @param operation - Operation to execute
@@ -324,6 +330,32 @@ export class OperationController {
 			message: result.output || 'Pods installed',
 			error: result.error,
 		}
+	}
+
+	private async freshChangeset(workingDir: string): Promise<OperationResult> {
+		// Prompt user for a changeset name
+		const changesetId: string = 'new-changeset'
+
+		const currentBranch = await gitService.getCurrentBranch(workingDir)
+
+		// Check if we have uncommited changes
+		const isClean = await gitService.hasUncommittedChanges(workingDir)
+		if (!isClean) {
+			const result = await gitService.saveChanges(
+				workingDir,
+				'stash',
+				`wip-${currentBranch}-${Date.now()}`,
+			)
+			if (!result.success) {
+				return {
+					success: false,
+					message: 'Failed to stash changes',
+					error: result.error,
+				}
+			}
+		}
+
+		// Change to main branch and update to latest changes
 	}
 
 	/**

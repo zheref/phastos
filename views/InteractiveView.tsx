@@ -4,19 +4,15 @@
  * Provides interactive UI for project selection and operation execution
  * Uses Ink for beautiful terminal interfaces
  */
-import React, { useState } from 'npm:react@18.3.1'
-import { Box, render, Text, useApp, useInput } from 'npm:ink@4.4.1'
 import SelectInput from 'npm:ink-select-input@6.0.0'
 import Spinner from 'npm:ink-spinner@5.0.0'
-import type {
-	CustomCommand,
-	NodeProjectsConfig,
-	Project,
-} from '../models/Project.ts'
+import { Box, render, Text, useApp, useInput } from 'npm:ink@4.4.1'
+import React, { useState } from 'npm:react@18.3.1'
 import {
 	operationController,
 	type OperationResult,
 } from '../controllers/OperationController.ts'
+import type { NodeProjectsConfig, Project } from '../models/Project.ts'
 
 /**
  * Props for InteractiveView component
@@ -52,8 +48,9 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 		null,
 	)
 	const [currentOperation, setCurrentOperation] = useState<string>('')
-	const [operationResult, setOperationResult] =
-		useState<OperationResult | null>(null)
+	const [operationResult, setOperationResult] = useState<
+		OperationResult | null
+	>(null)
 	const { exit } = useApp()
 
 	/**
@@ -117,9 +114,7 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 			setOperationResult({
 				success: false,
 				message: 'Operation failed',
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			})
 			setState('result')
 		}
@@ -168,7 +163,10 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 					<Text>Select a project to work with:</Text>
 				</Box>
 
-				<SelectInput items={projectItems} onSelect={handleProjectSelect} />
+				<SelectInput
+					items={projectItems}
+					onSelect={handleProjectSelect}
+				/>
 
 				<Box marginTop={1}>
 					<Text dimColor>
@@ -185,7 +183,10 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	if (state === 'operation-selection' && selectedProject) {
 		// Core operations
 		const coreOperations: MenuItem[] = [
-			{ label: 'Clean Slate - Discard uncommitted changes', value: 'clean_slate' },
+			{
+				label: 'Clean Slate - Discard uncommitted changes',
+				value: 'clean_slate',
+			},
 			{ label: 'Save - Stash or branch changes', value: 'save' },
 			{ label: 'Update - Pull latest changes', value: 'update' },
 			{ label: 'Install - Install dependencies', value: 'install' },
@@ -247,9 +248,7 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 			<Box flexDirection='column' padding={1}>
 				<Box marginBottom={1}>
 					<Text bold color='yellow'>
-						<Spinner type='dots' />
-						{' '}
-						Executing: {currentOperation}
+						<Spinner type='dots' /> Executing: {currentOperation}
 					</Text>
 				</Box>
 
@@ -291,7 +290,8 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 					</Box>
 					<Box marginLeft={2}>
 						<Text>
-							<Text color='cyan'>h</Text> - Back to project selection
+							<Text color='cyan'>h</Text>{' '}
+							- Back to project selection
 						</Text>
 					</Box>
 					<Box marginLeft={2}>

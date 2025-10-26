@@ -287,7 +287,7 @@ deno task test:watch
 
 ### Adding New Operations
 
-1. Add operation type to `models/Project.ts`:
+1. Add operation type to `types/OperationType.ts`:
 
 ```typescript
 export type OperationType =
@@ -376,7 +376,7 @@ phastos run android-release --project MyApp
 | Feature         | Alars (Xcode)  | Phastos (React Native) |
 | --------------- | -------------- | ---------------------- |
 | Platform        | Swift/Xcode    | React Native           |
-| Config File     | xprojects.json | node_projects.json         |
+| Config File     | xprojects.json | node_projects.json     |
 | Build System    | Xcode Build    | React Native CLI       |
 | Package Manager | CocoaPods      | npm/yarn/pnpm/bun      |
 | Runtime         | Swift          | Deno                   |
