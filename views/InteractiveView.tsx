@@ -7,12 +7,19 @@
 import SelectInput from 'npm:ink-select-input@6.0.0'
 import Spinner from 'npm:ink-spinner@5.0.0'
 import { Box, render, Text, useApp, useInput } from 'npm:ink@4.4.1'
-import React, { useState } from 'npm:react@18.3.1'
+import { useEffect, useState } from 'npm:react@18.3.1'
 import {
-	operationController,
+	OperationController,
 	type OperationResult,
 } from '../controllers/OperationController.ts'
-import type { NodeProjectsConfig, Project } from '../models/Project.ts'
+import type {
+	CustomCommand,
+	NodeProjectsConfig,
+	Operation,
+	Project,
+} from '../models/Project.ts'
+import { Logger } from '../services/Logger.ts'
+import { CompactLogsView } from './LogsView.tsx'
 
 /**
  * Props for InteractiveView component
@@ -51,7 +58,19 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	const [operationResult, setOperationResult] = useState<
 		OperationResult | null
 	>(null)
+	const [logger] = useState<Logger>(() => new Logger())
+	const [operationController] = useState<OperationController>(
+		() => new OperationController(logger),
+	)
 	const { exit } = useApp()
+
+	// Clear logger when switching projects
+	useEffect(() => {
+		if (selectedProject) {
+			logger.clear()
+			logger.setContext(selectedProject.name)
+		}
+	}, [selectedProject, logger])
 
 	/**
 	 * Handles project selection
@@ -78,7 +97,7 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 
 			// Check if it's a custom command
 			const customCommand = selectedProject.customCommands?.find(
-				(cmd) => cmd.alias === item.value,
+				(cmd: CustomCommand) => cmd.alias === item.value,
 			)
 
 			if (customCommand) {
@@ -89,21 +108,24 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				)
 
 				// Aggregate results
-				const allSuccess = results.every((r) => r.success)
+				const allSuccess = results.every((r: OperationResult) =>
+					r.success
+				)
 				result = {
 					success: allSuccess,
 					message: allSuccess
 						? `Custom command '${customCommand.alias}' completed successfully`
 						: `Custom command '${customCommand.alias}' failed`,
-					error: results.find((r) => !r.success)?.error,
+					error: results.find((r: OperationResult) => !r.success)
+						?.error,
 				}
 			} else {
 				// Execute single operation
 				result = await operationController.execute(
 					{
-						type: item.value as any,
+						type: item.value,
 						description: item.label,
-					},
+					} as Operation,
 					selectedProject,
 				)
 			}
@@ -199,7 +221,7 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 
 		// Add custom commands
 		const customCommands: MenuItem[] =
-			selectedProject.customCommands?.map((cmd) => ({
+			selectedProject.customCommands?.map((cmd: CustomCommand) => ({
 				label: `${cmd.alias} - ${cmd.description}`,
 				value: cmd.alias,
 			})) || []
@@ -252,8 +274,12 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 					</Text>
 				</Box>
 
-				<Box>
+				<Box marginBottom={1}>
 					<Text dimColor>Please wait...</Text>
+				</Box>
+
+				<Box marginTop={1}>
+					<CompactLogsView logger={logger} maxLines={8} />
 				</Box>
 			</Box>
 		)
@@ -278,6 +304,12 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				{operationResult.error && (
 					<Box marginBottom={1}>
 						<Text color='red'>Error: {operationResult.error}</Text>
+					</Box>
+				)}
+
+				{logger.getCount() > 0 && (
+					<Box marginTop={1} marginBottom={1}>
+						<CompactLogsView logger={logger} maxLines={10} />
 					</Box>
 				)}
 

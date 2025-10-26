@@ -11,6 +11,7 @@ import type {
 	Project,
 } from '../models/Project.ts'
 import { gitService } from '../services/GitService.ts'
+import { Logger } from '../services/Logger.ts'
 import { reactNativeService } from '../services/ReactNativeService.ts'
 
 /**
@@ -26,10 +27,24 @@ export interface OperationResult {
  * Controller for executing operations on projects
  */
 export class OperationController {
-	private printMsg?: (msg: string) => void
+	private logger: Logger
 
-	constructor(printMsg?: (msg: string) => void) {
-		this.printMsg = printMsg
+	constructor(logger?: Logger) {
+		this.logger = logger || new Logger()
+	}
+
+	/**
+	 * Gets the logger instance
+	 */
+	getLogger(): Logger {
+		return this.logger
+	}
+
+	/**
+	 * Sets a new logger instance
+	 */
+	setLogger(logger: Logger): void {
+		this.logger = logger
 	}
 
 	/**
@@ -45,59 +60,89 @@ export class OperationController {
 		const { type, parameters = {} } = operation
 		const workingDir = project.workingDirectory
 
+		this.logger.info(`Starting operation: ${type} on ${project.name}`)
+
 		try {
+			let result: OperationResult
+
 			switch (type) {
 				case 'clean_slate':
-					return await this.cleanSlate(workingDir)
+					result = await this.cleanSlate(workingDir)
+					break
 
 				case 'save':
-					return await this.save(
+					result = await this.save(
 						workingDir,
 						project.configuration.savePreference,
 					)
+					break
 
 				case 'update':
-					return await this.update(
+					result = await this.update(
 						workingDir,
 						project.configuration.defaultBranch,
 					)
+					break
 
 				case 'install':
-					return await this.install(workingDir, parameters)
+					result = await this.install(workingDir, parameters)
+					break
 
 				case 'build':
-					return await this.build(workingDir, parameters)
+					result = await this.build(workingDir, parameters)
+					break
 
 				case 'test':
-					return await this.test(workingDir, parameters)
+					result = await this.test(workingDir, parameters)
+					break
 
 				case 'run':
-					return await this.run(
+					result = await this.run(
 						workingDir,
 						project.configuration,
 						parameters,
 					)
+					break
 
 				case 'reset':
-					return await this.reset(workingDir)
+					result = await this.reset(workingDir)
+					break
 
 				case 'pod_install':
-					return await this.podInstall(workingDir)
+					result = await this.podInstall(workingDir)
+					break
 
 				case 'custom':
-					return await this.custom(workingDir, parameters)
+					result = await this.custom(workingDir, parameters)
+					break
 
 				default:
-					return {
+					result = {
 						success: false,
 						message: `Unknown operation type: ${type}`,
 					}
 			}
+
+			// Log the result
+			if (result.success) {
+				this.logger.log(result.message)
+			} else {
+				this.logger.failure(result.message)
+				if (result.error) {
+					this.logger.error(result.error)
+				}
+			}
+
+			return result
 		} catch (error) {
+			const errorMsg = error instanceof Error
+				? error.message
+				: 'Unknown error'
+			this.logger.error('Operation failed', errorMsg)
 			return {
 				success: false,
 				message: 'Operation failed',
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: errorMsg,
 			}
 		}
 	}
@@ -136,16 +181,20 @@ export class OperationController {
 	private async cleanSlate(
 		workingDir: string,
 	): Promise<OperationResult> {
+		this.logger.verbose('Checking if directory is a git repository...')
+
 		// Check if git repository
 		const isGitRepo = await gitService.isGitRepository(workingDir)
 		if (!isGitRepo) {
+			this.logger.warning('Not a git repository')
 			return {
 				success: false,
 				message: 'Not a git repository',
 			}
 		}
 
-		const result = await gitService.cleanSlate(workingDir)
+		this.logger.verbose('Discarding all uncommitted changes...')
+		const result = await gitService.cleanSlate(workingDir, this.logger)
 
 		return {
 			success: result.success,
@@ -161,27 +210,39 @@ export class OperationController {
 		workingDir: string,
 		savePreference: 'stash' | 'branch',
 	): Promise<OperationResult> {
+		this.logger.verbose('Checking if directory is a git repository...')
+
 		// Check if git repository
 		const isGitRepo = await gitService.isGitRepository(workingDir)
 		if (!isGitRepo) {
+			this.logger.warning('Not a git repository')
 			return {
 				success: false,
 				message: 'Not a git repository',
 			}
 		}
 
+		this.logger.verbose('Checking for uncommitted changes...')
+
 		// Check for uncommitted changes
 		const hasChanges = await gitService.hasUncommittedChanges(workingDir)
 		if (!hasChanges) {
+			this.logger.info('No changes to save')
 			return {
 				success: true,
 				message: 'No changes to save',
 			}
 		}
 
+		this.logger.verbose(
+			`Saving changes using ${savePreference} strategy...`,
+		)
 		const result = await gitService.saveChanges(
 			workingDir,
 			savePreference,
+			undefined,
+			undefined,
+			this.logger,
 		)
 
 		return {
@@ -198,16 +259,29 @@ export class OperationController {
 		workingDir: string,
 		defaultBranch?: string,
 	): Promise<OperationResult> {
+		this.logger.verbose('Checking if directory is a git repository...')
+
 		// Check if git repository
 		const isGitRepo = await gitService.isGitRepository(workingDir)
 		if (!isGitRepo) {
+			this.logger.warning('Not a git repository')
 			return {
 				success: false,
 				message: 'Not a git repository',
 			}
 		}
 
-		const result = await gitService.update(workingDir, defaultBranch)
+		if (defaultBranch) {
+			this.logger.verbose(`Updating from branch: ${defaultBranch}`)
+		} else {
+			this.logger.verbose('Updating current branch...')
+		}
+
+		const result = await gitService.update(
+			workingDir,
+			defaultBranch,
+			this.logger,
+		)
 
 		return {
 			success: result.success,
@@ -223,6 +297,9 @@ export class OperationController {
 		workingDir: string,
 		parameters: OperationParameters,
 	): Promise<OperationResult> {
+		const pm = parameters.packageManager || 'npm'
+		this.logger.verbose(`Installing dependencies using ${pm}...`)
+
 		const result = await reactNativeService.install(
 			workingDir,
 			parameters.packageManager,
@@ -245,6 +322,8 @@ export class OperationController {
 		const platform = parameters.platform || 'ios'
 		const mode = parameters.mode || 'debug'
 
+		this.logger.verbose(`Building for ${platform} in ${mode} mode...`)
+
 		const result = await reactNativeService.build(
 			workingDir,
 			platform as Platform,
@@ -265,6 +344,14 @@ export class OperationController {
 		workingDir: string,
 		parameters: OperationParameters,
 	): Promise<OperationResult> {
+		this.logger.verbose('Running tests...')
+		if (parameters.testFile) {
+			this.logger.verbose(`Test file: ${parameters.testFile}`)
+		}
+		if (parameters.coverage) {
+			this.logger.verbose('Coverage enabled')
+		}
+
 		const result = await reactNativeService.test(
 			workingDir,
 			parameters.testFile,
@@ -290,6 +377,12 @@ export class OperationController {
 		const device = parameters.device || config.defaultDevice
 		const mode = parameters.mode || 'debug'
 
+		this.logger.verbose(
+			`Running app on ${platform}${
+				device ? ` (${device})` : ''
+			} in ${mode} mode...`,
+		)
+
 		const result = await reactNativeService.run(
 			workingDir,
 			platform as Platform,
@@ -308,6 +401,8 @@ export class OperationController {
 	 * Reset operation - reset React Native cache
 	 */
 	private async reset(workingDir: string): Promise<OperationResult> {
+		this.logger.verbose('Resetting React Native cache...')
+
 		const result = await reactNativeService.reset(workingDir)
 
 		return {
@@ -323,6 +418,8 @@ export class OperationController {
 	private async podInstall(
 		workingDir: string,
 	): Promise<OperationResult> {
+		this.logger.verbose('Installing CocoaPods dependencies...')
+
 		const result = await reactNativeService.podInstall(workingDir)
 
 		return {
@@ -334,7 +431,7 @@ export class OperationController {
 
 	private async freshChangeset(workingDir: string): Promise<OperationResult> {
 		// Prompt user for a changeset name
-		const changesetId: string = 'new-changeset'
+		const _changesetId: string = 'new-changeset'
 
 		const currentBranch = await gitService.getCurrentBranch(workingDir)
 
@@ -356,6 +453,11 @@ export class OperationController {
 		}
 
 		// Change to main branch and update to latest changes
+		// TODO: Implement this operation
+		return {
+			success: false,
+			message: 'Fresh changeset operation not yet implemented',
+		}
 	}
 
 	/**
@@ -366,6 +468,7 @@ export class OperationController {
 		parameters: OperationParameters,
 	): Promise<OperationResult> {
 		if (!parameters.command) {
+			this.logger.warning('Custom command requires a "command" parameter')
 			return {
 				success: false,
 				message: 'Custom command requires a "command" parameter',
@@ -373,6 +476,11 @@ export class OperationController {
 		}
 
 		const customWorkingDir = parameters.workingDirectory || workingDir
+
+		this.logger.verbose(`Executing custom command: ${parameters.command}`)
+		if (customWorkingDir !== workingDir) {
+			this.logger.verbose(`Working directory: ${customWorkingDir}`)
+		}
 
 		const result = await reactNativeService.executeCustomCommand(
 			parameters.command,
