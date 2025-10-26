@@ -50,7 +50,8 @@ const ListComponent = ({ projects }: { projects: any[] }) => (
 						)}
 						<Box marginLeft={2}>
 							<Text dimColor>
-								Platform: {project.configuration.defaultPlatform || 'ios'}
+								Platform:{' '}
+								{project.configuration.defaultPlatform || 'ios'}
 							</Text>
 						</Box>
 					</Box>

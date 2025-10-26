@@ -1,5 +1,5 @@
-import type { ProjectConfiguration } from "./ProjectConfiguration.ts"
-import type { CustomCommand } from "./CustomCommand.ts"
+import type { ProjectConfiguration } from './ProjectConfiguration.ts'
+import type { CustomCommand } from './CustomCommand.ts'
 
 /**
  * Represents a single Node.js/React Native project

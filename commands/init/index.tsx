@@ -26,7 +26,9 @@ const SuccessComponent = ({ path }: { path: string }) => (
 		<Box flexDirection='column' marginTop={1}>
 			<Text dimColor>Next steps:</Text>
 			<Box marginLeft={2}>
-				<Text>1. Edit node_projects.json to configure your projects</Text>
+				<Text>
+					1. Edit node_projects.json to configure your projects
+				</Text>
 			</Box>
 			<Box marginLeft={2}>
 				<Text>2. Run 'phastos' to start interactive mode</Text>

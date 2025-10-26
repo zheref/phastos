@@ -70,6 +70,10 @@ export class OperationController {
 					result = await this.cleanSlate(workingDir)
 					break
 
+				case 'fresh':
+					result = await this.freshChangeset(workingDir, project)
+					break
+
 				case 'save':
 					result = await this.save(
 						workingDir,
@@ -429,19 +433,35 @@ export class OperationController {
 		}
 	}
 
-	private async freshChangeset(workingDir: string): Promise<OperationResult> {
+	/**
+	 * Fresh changeset operation - create a new changeset
+	 * @param workingDir - Path to the working directory
+	 * @returns Operation result
+	 */
+	private async freshChangeset(
+		workingDir: string,
+		project: Project,
+	): Promise<OperationResult> {
 		// Prompt user for a changeset name
 		const _changesetId: string = 'new-changeset'
 
+		this.logger.verbose('Creating fresh changeset...')
 		const currentBranch = await gitService.getCurrentBranch(workingDir)
 
 		// Check if we have uncommited changes
 		const isClean = await gitService.hasUncommittedChanges(workingDir)
 		if (!isClean) {
+			this.logger.verbose('Stashing uncommitted changes...')
+			const expectedStashName = `wip-${currentBranch}-${Date.now()}`
 			const result = await gitService.saveChanges(
 				workingDir,
 				'stash',
-				`wip-${currentBranch}-${Date.now()}`,
+				expectedStashName,
+				undefined,
+				this.logger,
+			)
+			this.logger.verbose(
+				`Stashed changes with name: ${expectedStashName}`,
 			)
 			if (!result.success) {
 				return {
@@ -452,11 +472,100 @@ export class OperationController {
 			}
 		}
 
+		this.logger.verbose('Checking latest changes on main branch...')
+
 		// Change to main branch and update to latest changes
-		// TODO: Implement this operation
+
+		// Identify the main branch name
+		const mainBranchName = await gitService.getMainBranch(
+			workingDir,
+			project.configuration.defaultBranch,
+		)
+		if (!mainBranchName) {
+			this.logger.error('Main branch not found')
+			return {
+				success: false,
+				message: 'Main branch not found',
+			}
+		}
+
+		// Switch to main branch if not already on it
+		if (mainBranchName !== currentBranch) {
+			this.logger.verbose(`Changing to main branch: ${mainBranchName}`)
+			const result = await gitService.switchToBranch(
+				workingDir,
+				mainBranchName,
+				this.logger,
+			)
+			if (!result.success) {
+				return {
+					success: false,
+					message: 'Failed to switch to main branch',
+					error: result.error,
+				}
+			}
+		}
+
+		// Update to latest changes
+		this.logger.verbose('Updating to latest changes...')
+		const updateResult = await gitService.update(
+			workingDir,
+			mainBranchName,
+			this.logger,
+		)
+		if (!updateResult.success) {
+			return {
+				success: false,
+				message: 'Failed to update to latest changes',
+				error: updateResult.error,
+			}
+		} else {
+			this.logger.info('Latest changes updated successfully')
+		}
+
+		// Create the changeset branch
+		const branchName = `changeset/${_changesetId}`
+
+		// Check if the branch already exists
+		const doesBranchExist = await gitService.doesBranchExist(
+			workingDir,
+			branchName,
+		)
+		if (doesBranchExist) {
+			this.logger.warning(
+				`Branch ${branchName} already exists. Switching to it...`,
+			)
+			const result = await gitService.switchToBranch(
+				workingDir,
+				branchName,
+				this.logger,
+			)
+			if (!result.success) {
+				return {
+					success: false,
+					message: 'Failed to switch to changeset branch',
+					error: result.error,
+				}
+			}
+		} else {
+			this.logger.verbose(`Creating new branch: ${branchName}`)
+			const result = await gitService.createBranch(
+				workingDir,
+				branchName,
+				this.logger,
+			)
+			if (!result.success) {
+				return {
+					success: false,
+					message: 'Failed to create changeset branch',
+					error: result.error,
+				}
+			}
+		}
+
 		return {
-			success: false,
-			message: 'Fresh changeset operation not yet implemented',
+			success: true,
+			message: 'Changeset created/started successfully',
 		}
 	}
 

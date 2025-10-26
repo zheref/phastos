@@ -53,7 +53,7 @@ const InitPromptComponent = ({
 			<Box flexDirection='column' padding={1}>
 				<Box marginBottom={1}>
 					<Text bold color='yellow'>
-						⚠️  No node_projects.json found
+						⚠️ No node_projects.json found
 					</Text>
 				</Box>
 
@@ -81,11 +81,11 @@ const InitPromptComponent = ({
 			</Box>
 
 			<Box marginBottom={1}>
-				<Text>Enter project name (or press Enter for default): </Text>
+				<Text>Enter project name (or press Enter for default):</Text>
 			</Box>
 
 			<Box>
-				<Text color='green'>→ </Text>
+				<Text color='green'>→</Text>
 				<TextInput
 					value={projectName}
 					onChange={setProjectName}

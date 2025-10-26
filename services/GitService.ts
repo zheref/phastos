@@ -21,6 +21,27 @@ export interface GitOperationResult {
  */
 export class GitService {
 	/**
+	 * Checks if a branch exists in the repository
+	 * @param wd - Path to the working directory
+	 * @param branchName - Name of the branch to check
+	 * @returns True if the branch exists
+	 */
+	async doesBranchExist(wd: string, branchName: string): Promise<boolean> {
+		try {
+			const command = new Deno.Command('git', {
+				args: ['rev-parse', '--verify', branchName],
+				cwd: wd,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+			const { success } = await command.output()
+			return success
+		} catch {
+			return false
+		}
+	}
+
+	/**
 	 * Checks if a directory is a Git repository
 	 * @param workingDirectory - Path to check
 	 * @returns True if directory is a Git repo
@@ -62,6 +83,33 @@ export class GitService {
 			return output.length > 0
 		} catch {
 			return false
+		}
+	}
+
+	/**
+	 * Gets the main branch name from the repository
+	 * @param wd - Path to the working directory
+	 * @param configuredDefaultBranch - Optional configured default branch name
+	 * @returns The main branch name or undefined if no branch exists matching the possible branch names
+	 */
+	async getMainBranch(
+		wd: string,
+		configuredDefaultBranch: string | undefined = undefined,
+	): Promise<string | undefined> {
+		let possibleBranchNames = ['develop', 'main', 'master']
+
+		if (configuredDefaultBranch) {
+			possibleBranchNames = [
+				configuredDefaultBranch,
+				...possibleBranchNames,
+			]
+		}
+
+		// Check if the branch exists in the repository
+		for (const branchName of possibleBranchNames) {
+			if (await this.doesBranchExist(wd, branchName)) {
+				return branchName
+			}
 		}
 	}
 
@@ -221,13 +269,54 @@ export class GitService {
 	}
 
 	/**
+	 * Switches to a branch
+	 * @param wd - Path to the working directory
+	 * @param branchName - Name of the branch to switch to
+	 * @param logger - Optional logger for operation tracking
+	 * @returns Operation result
+	 */
+	async switchToBranch(
+		wd: string,
+		branchName: string,
+		logger?: Logger,
+	): Promise<GitOperationResult> {
+		try {
+			logger?.verbose(`Switching to branch: ${branchName}`)
+			const command = new Deno.Command('git', {
+				args: ['checkout', branchName],
+				cwd: wd,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+			const result = await command.output()
+			if (result.success) {
+				logger?.log(`Switched to branch: ${branchName}`)
+				return {
+					success: true,
+					output: `Switched to branch: ${branchName}`,
+				}
+			} else {
+				const error = new TextDecoder().decode(result.stderr)
+				logger?.error('Failed to switch to branch', error)
+				return { success: false, error }
+			}
+		} catch (error) {
+			const errorMsg = error instanceof Error
+				? error.message
+				: 'Unknown error'
+			logger?.error('Switch to branch operation failed', errorMsg)
+			return { success: false, error: errorMsg }
+		}
+	}
+
+	/**
 	 * Creates a new branch with current changes
 	 * @param workingDirectory - Path to Git repository
 	 * @param branchName - Name for the new branch
 	 * @param logger - Optional logger for operation tracking
 	 * @returns Operation result
 	 */
-	private async createBranch(
+	async createBranch(
 		workingDirectory: string,
 		branchName: string,
 		logger?: Logger,

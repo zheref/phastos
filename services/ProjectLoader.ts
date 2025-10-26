@@ -338,8 +338,8 @@ export class ProjectLoader {
 		config: NodeProjectsConfig,
 		configPath?: string,
 	): Promise<void> {
-		const path =
-			configPath || join(Deno.cwd(), ProjectLoader.CONFIG_FILE_NAME)
+		const path = configPath ||
+			join(Deno.cwd(), ProjectLoader.CONFIG_FILE_NAME)
 
 		await Deno.writeTextFile(
 			path,

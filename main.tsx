@@ -13,10 +13,7 @@ import { Box, render, Text } from 'npm:ink@4.4.1'
 import { commands } from './commands/index.ts'
 import { renderInteractiveView } from './views/InteractiveView.tsx'
 import { renderInitPrompt } from './views/InitPromptView.tsx'
-import {
-	projectLoader,
-	ProjectLoadError,
-} from './services/ProjectLoader.ts'
+import { projectLoader, ProjectLoadError } from './services/ProjectLoader.ts'
 
 /**
  * Renders help/usage information
@@ -32,7 +29,8 @@ function showHelp(): void {
 
 			<Box marginBottom={1}>
 				<Text>
-					A powerful CLI for managing React Native projects with interactive workflows
+					A powerful CLI for managing React Native projects with
+					interactive workflows
 				</Text>
 			</Box>
 
@@ -47,16 +45,19 @@ function showHelp(): void {
 				<Text bold>Commands:</Text>
 				<Box marginLeft={2} flexDirection='column'>
 					<Text>
-						<Text color='green'>init</Text> - Create a new node_projects.json file
+						<Text color='green'>init</Text>{' '}
+						- Create a new node_projects.json file
 					</Text>
 					<Text>
-						<Text color='green'>list</Text> - List all configured projects
+						<Text color='green'>list</Text>{' '}
+						- List all configured projects
 					</Text>
 					<Text>
-						<Text color='green'>run</Text> - Run an operation on a project
+						<Text color='green'>run</Text>{' '}
+						- Run an operation on a project
 					</Text>
 					<Text dimColor>
-						      phastos run &lt;operation&gt; --project &lt;name&gt;
+						phastos run &lt;operation&gt; --project &lt;name&gt;
 					</Text>
 				</Box>
 			</Box>
@@ -64,7 +65,10 @@ function showHelp(): void {
 			<Box flexDirection='column' marginBottom={1}>
 				<Text bold>Interactive Mode:</Text>
 				<Box marginLeft={2}>
-					<Text>Run 'phastos' without arguments to enter interactive mode</Text>
+					<Text>
+						Run 'phastos' without arguments to enter interactive
+						mode
+					</Text>
 				</Box>
 			</Box>
 
@@ -80,7 +84,9 @@ function showHelp(): void {
 					<Text>• run - Run on simulator/emulator</Text>
 					<Text>• reset - Reset React Native cache</Text>
 					<Text>• pod_install - Install iOS CocoaPods</Text>
-					<Text dimColor>• Plus any custom commands from node_projects.json</Text>
+					<Text dimColor>
+						• Plus any custom commands from node_projects.json
+					</Text>
 				</Box>
 			</Box>
 		</Box>
@@ -108,8 +114,8 @@ async function main(): Promise<void> {
 				await renderInitPrompt(
 					async (projectName: string) => {
 						try {
-							const configPath =
-								await projectLoader.createDefaultConfig(
+							const configPath = await projectLoader
+								.createDefaultConfig(
 									projectName,
 								)
 

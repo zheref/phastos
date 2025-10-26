@@ -3,12 +3,14 @@
 ## [Unreleased]
 
 ### Changed
+
 - **BREAKING**: Renamed configuration file from `nprojects.json` to `node_projects.json`
 - **BREAKING**: Renamed TypeScript interface from `NProjectsConfig` to `NodeProjectsConfig`
 - Updated all documentation to reflect new configuration filename
 - Updated README with corrected installation commands and examples
 
 ### Added
+
 - Interactive prompt when `node_projects.json` is not found (inspired by Alars)
   - Asks user if they want to create a configuration file (y/n)
   - Prompts for project name with default value
@@ -18,6 +20,7 @@
 - Support for `ink-text-input` for user input in prompts
 
 ### Fixed
+
 - Interactive mode now properly waits for user input (using `waitUntilExit()`)
 - Main entry point renamed from `main.ts` to `main.tsx` for proper JSX support
 - Updated all JSX pragmas to be at the top of files

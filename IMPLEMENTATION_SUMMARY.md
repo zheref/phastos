@@ -7,6 +7,7 @@ Phastos has been fully transformed from a basic CLI demo into a comprehensive Re
 ### Architecture
 
 **MVC Pattern (ExpressJS-style)**
+
 - **Models** (`models/Project.ts`) - Type-safe data structures for projects and operations
 - **Views** (`views/InteractiveView.tsx`) - Beautiful Ink-based terminal UI
 - **Controllers** (`controllers/OperationController.ts`) - Business logic orchestration
@@ -71,6 +72,7 @@ Phastos has been fully transformed from a basic CLI demo into a comprehensive Re
 ### Files Created/Modified
 
 **New Files:**
+
 ```
 models/Project.ts
 views/InteractiveView.tsx
@@ -89,6 +91,7 @@ IMPLEMENTATION_SUMMARY.md
 ```
 
 **Modified Files:**
+
 ```
 main.ts → main.tsx (renamed, added JSX support)
 commands/index.ts (registered new commands)
@@ -128,33 +131,36 @@ phastos run cosmic-deploy --project MyApp
 
 ```json
 {
-  "version": "1.0",
-  "projects": [
-    {
-      "name": "MyApp",
-      "workingDirectory": "./my-app",
-      "repositoryURL": "https://github.com/user/my-app.git",
-      "configuration": {
-        "defaultBranch": "main",
-        "savePreference": "stash",
-        "packageManager": "npm",
-        "defaultPlatform": "ios"
-      },
-      "customCommands": [
-        {
-          "alias": "cosmic-deploy",
-          "description": "Full deployment workflow",
-          "operations": [
-            { "type": "clean_slate" },
-            { "type": "update" },
-            { "type": "install" },
-            { "type": "build", "parameters": { "platform": "both" } },
-            { "type": "test" }
-          ]
-        }
-      ]
-    }
-  ]
+	"version": "1.0",
+	"projects": [
+		{
+			"name": "MyApp",
+			"workingDirectory": "./my-app",
+			"repositoryURL": "https://github.com/user/my-app.git",
+			"configuration": {
+				"defaultBranch": "main",
+				"savePreference": "stash",
+				"packageManager": "npm",
+				"defaultPlatform": "ios"
+			},
+			"customCommands": [
+				{
+					"alias": "cosmic-deploy",
+					"description": "Full deployment workflow",
+					"operations": [
+						{ "type": "clean_slate" },
+						{ "type": "update" },
+						{ "type": "install" },
+						{
+							"type": "build",
+							"parameters": { "platform": "both" }
+						},
+						{ "type": "test" }
+					]
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -167,6 +173,7 @@ The architecture is designed to easily support additional platforms:
 3. **Register in controller** `controllers/OperationController.ts`
 
 Future platforms could include:
+
 - Next.js projects
 - Angular projects
 - Vue projects
@@ -175,15 +182,15 @@ Future platforms could include:
 
 ## Comparison with Alars
 
-| Aspect | Alars | Phastos |
-|--------|-------|---------|
-| Platform | Xcode | React Native |
-| Language | Swift | TypeScript |
-| Runtime | Swift | Deno |
-| UI | Swift TUI | Ink (React) |
-| Config | xprojects.json | nprojects.json |
-| Package Mgr | CocoaPods | npm/yarn/pnpm/bun |
-| Operations | Xcode build, test | RN build, run, test |
+| Aspect      | Alars             | Phastos             |
+| ----------- | ----------------- | ------------------- |
+| Platform    | Xcode             | React Native        |
+| Language    | Swift             | TypeScript          |
+| Runtime     | Swift             | Deno                |
+| UI          | Swift TUI         | Ink (React)         |
+| Config      | xprojects.json    | nprojects.json      |
+| Package Mgr | CocoaPods         | npm/yarn/pnpm/bun   |
+| Operations  | Xcode build, test | RN build, run, test |
 
 ## Known Issues
 
@@ -218,6 +225,7 @@ deno test commands/list/list.test.ts --allow-env --allow-read
 🎉 **Fully Functional** - Ready for use with React Native projects!
 
 The CLI successfully:
+
 - ✅ Builds and installs
 - ✅ Reads/writes configuration files
 - ✅ Displays help and lists projects
@@ -228,6 +236,7 @@ The CLI successfully:
 ## Next Steps
 
 To use in production:
+
 1. Test with actual React Native projects
 2. Consider adding more operations (lint, format, etc.)
 3. Add progress bars for long-running operations

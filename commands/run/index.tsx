@@ -126,7 +126,8 @@ const RunComponent = ({ projectName, operationName }: RunComponentProps) => {
 				</Box>
 				<Box>
 					<Text>
-						<Spinner type='dots' /> Executing on project '{projectName}'...
+						<Spinner type='dots' />{' '}
+						Executing on project '{projectName}'...
 					</Text>
 				</Box>
 			</Box>
@@ -180,7 +181,9 @@ const UsageComponent = () => (
 		</Box>
 
 		<Box marginBottom={1}>
-			<Text>phastos run &lt;operation&gt; --project &lt;project-name&gt;</Text>
+			<Text>
+				phastos run &lt;operation&gt; --project &lt;project-name&gt;
+			</Text>
 		</Box>
 
 		<Box flexDirection='column'>
@@ -210,8 +213,9 @@ export const runCommand: Command = {
 		// Parse arguments
 		const operationName = args[0]
 		const projectFlagIndex = args.indexOf('--project')
-		const projectName =
-			projectFlagIndex >= 0 ? args[projectFlagIndex + 1] : null
+		const projectName = projectFlagIndex >= 0
+			? args[projectFlagIndex + 1]
+			: null
 
 		if (!operationName) {
 			render(<UsageComponent />)
@@ -223,7 +227,12 @@ export const runCommand: Command = {
 			return
 		}
 
-		render(<RunComponent projectName={projectName} operationName={operationName} />)
+		render(
+			<RunComponent
+				projectName={projectName}
+				operationName={operationName}
+			/>,
+		)
 	},
 	component: () => (
 		<RunComponent projectName='example' operationName='build' />

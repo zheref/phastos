@@ -93,9 +93,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -142,9 +140,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -162,8 +158,9 @@ export class ReactNativeService {
 		mode: 'debug' | 'release' = 'debug',
 	): Promise<RNOperationResult> {
 		try {
-			const platforms =
-				platform === 'both' ? ['ios', 'android'] : [platform]
+			const platforms = platform === 'both'
+				? ['ios', 'android']
+				: [platform]
 
 			for (const p of platforms) {
 				const result = await this.buildPlatform(
@@ -183,9 +180,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -230,9 +225,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -285,9 +278,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -337,9 +328,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -358,10 +347,9 @@ export class ReactNativeService {
 
 			// Start Metro bundler with reset cache option
 			const command = new Deno.Command(pm, {
-				args:
-					pm === 'npm'
-						? ['run', 'start', '--', '--reset-cache']
-						: ['start', '--reset-cache'],
+				args: pm === 'npm'
+					? ['run', 'start', '--', '--reset-cache']
+					: ['start', '--reset-cache'],
 				cwd: workingDirectory,
 				stdout: 'piped',
 				stderr: 'piped',
@@ -381,9 +369,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -424,9 +410,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -461,9 +445,7 @@ export class ReactNativeService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
