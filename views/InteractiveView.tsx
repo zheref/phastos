@@ -6,6 +6,7 @@
  */
 import SelectInput from 'npm:ink-select-input@6.0.0'
 import Spinner from 'npm:ink-spinner@5.0.0'
+import TextInput from 'npm:ink-text-input@5.0.1'
 import { Box, render, Text, useApp, useInput } from 'npm:ink@4.4.1'
 import { useEffect, useState } from 'npm:react@18.3.1'
 import {
@@ -42,6 +43,7 @@ interface MenuItem {
 type ViewState =
 	| 'project-selection'
 	| 'operation-selection'
+	| 'parameter-input'
 	| 'executing'
 	| 'result'
 	| 'exiting'
@@ -55,9 +57,13 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 		null,
 	)
 	const [currentOperation, setCurrentOperation] = useState<string>('')
+	const [selectedOperationType, setSelectedOperationType] = useState<string>(
+		'',
+	)
 	const [operationResult, setOperationResult] = useState<
 		OperationResult | null
 	>(null)
+	const [changesetName, setChangesetName] = useState<string>('')
 	const [logger] = useState<Logger>(() => new Logger())
 	const [operationController] = useState<OperationController>(
 		() => new OperationController(logger),
@@ -89,15 +95,38 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	const handleOperationSelect = async (item: MenuItem) => {
 		if (!selectedProject) return
 
+		// Check if this operation requires parameters
+		if (item.value === 'fresh') {
+			// Store the operation and show parameter input
+			setSelectedOperationType(item.value)
+			setCurrentOperation(item.label)
+			setState('parameter-input')
+			return
+		}
+
+		// Execute operation directly
+		await executeOperation(item.value, item.label, {})
+	}
+
+	/**
+	 * Executes an operation with given parameters
+	 */
+	const executeOperation = async (
+		operationType: string,
+		operationLabel: string,
+		parameters: Record<string, unknown>,
+	) => {
+		if (!selectedProject) return
+
 		setState('executing')
-		setCurrentOperation(item.label)
+		setCurrentOperation(operationLabel)
 
 		try {
 			let result: OperationResult
 
 			// Check if it's a custom command
 			const customCommand = selectedProject.customCommands?.find(
-				(cmd: CustomCommand) => cmd.alias === item.value,
+				(cmd: CustomCommand) => cmd.alias === operationType,
 			)
 
 			if (customCommand) {
@@ -123,8 +152,9 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				// Execute single operation
 				result = await operationController.execute(
 					{
-						type: item.value,
-						description: item.label,
+						type: operationType,
+						description: operationLabel,
+						parameters,
 					} as Operation,
 					selectedProject,
 				)
@@ -140,6 +170,21 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 			})
 			setState('result')
 		}
+	}
+
+	/**
+	 * Handles changeset name submission
+	 */
+	const handleChangesetNameSubmit = async (value: string) => {
+		if (!value.trim()) {
+			// Use default if empty
+			await executeOperation(selectedOperationType, currentOperation, {})
+		} else {
+			await executeOperation(selectedOperationType, currentOperation, {
+				changesetName: value.trim(),
+			})
+		}
+		setChangesetName('') // Reset for next time
 	}
 
 	/**
@@ -217,6 +262,7 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 			{ label: 'Run - Run on simulator/emulator', value: 'run' },
 			{ label: 'Reset - Reset cache', value: 'reset' },
 			{ label: 'Pod Install - Install iOS pods', value: 'pod_install' },
+			{ label: 'Fresh - Create a fresh changeset', value: 'fresh' },
 		]
 
 		// Add custom commands
@@ -256,6 +302,42 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				<Box marginTop={1}>
 					<Text dimColor>
 						Use arrow keys to navigate, Enter to select
+					</Text>
+				</Box>
+			</Box>
+		)
+	}
+
+	/**
+	 * Render parameter input screen
+	 */
+	if (state === 'parameter-input') {
+		return (
+			<Box flexDirection='column' padding={1}>
+				<Box marginBottom={1}>
+					<Text bold color='cyan'>
+						{currentOperation}
+					</Text>
+				</Box>
+
+				<Box marginBottom={1}>
+					<Text>
+						Enter changeset name (or press Enter for default):
+					</Text>
+				</Box>
+
+				<Box marginBottom={1}>
+					<Text color='green'>&gt;</Text>
+					<TextInput
+						value={changesetName}
+						onChange={setChangesetName}
+						onSubmit={handleChangesetNameSubmit}
+					/>
+				</Box>
+
+				<Box marginTop={1}>
+					<Text dimColor>
+						Press Enter to confirm, Ctrl+C to cancel
 					</Text>
 				</Box>
 			</Box>

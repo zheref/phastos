@@ -20,6 +20,9 @@ export interface OperationParameters {
 	// For 'install' operation
 	packageManager?: 'npm' | 'yarn' | 'pnpm' | 'bun'
 
+	// For 'fresh' operation
+	changesetName?: string
+
 	// General parameters
 	verbose?: boolean
 	skipConfirmation?: boolean

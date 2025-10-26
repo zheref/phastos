@@ -71,7 +71,11 @@ export class OperationController {
 					break
 
 				case 'fresh':
-					result = await this.freshChangeset(workingDir, project)
+					result = await this.freshChangeset(
+						workingDir,
+						project,
+						parameters,
+					)
 					break
 
 				case 'save':
@@ -436,14 +440,17 @@ export class OperationController {
 	/**
 	 * Fresh changeset operation - create a new changeset
 	 * @param workingDir - Path to the working directory
+	 * @param project - Project configuration
+	 * @param parameters - Operation parameters including changesetName
 	 * @returns Operation result
 	 */
 	private async freshChangeset(
 		workingDir: string,
 		project: Project,
+		parameters: OperationParameters,
 	): Promise<OperationResult> {
-		// Prompt user for a changeset name
-		const _changesetId: string = 'new-changeset'
+		// Get changeset name from parameters
+		const _changesetId: string = parameters.changesetName || 'new-changeset'
 
 		this.logger.verbose('Creating fresh changeset...')
 		const currentBranch = await gitService.getCurrentBranch(workingDir)
