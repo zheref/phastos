@@ -91,9 +91,7 @@ export class OperationController {
 			return {
 				success: false,
 				message: 'Operation failed',
-				error: error instanceof Error
-					? error.message
-					: 'Unknown error',
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}
@@ -167,8 +165,7 @@ export class OperationController {
 		}
 
 		// Check for uncommitted changes
-		const hasChanges =
-			await gitService.hasUncommittedChanges(workingDir)
+		const hasChanges = await gitService.hasUncommittedChanges(workingDir)
 		if (!hasChanges) {
 			return {
 				success: true,
