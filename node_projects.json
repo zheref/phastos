@@ -43,6 +43,51 @@
 			]
 		},
 		{
+			"name": "GMV Rider App",
+			"workingDirectory": "../../Xpaces/react-native-rtpi",
+			"configuration": {
+				"defaultBranch": "main",
+				"savePreference": "stash",
+				"packageManager": "yarn",
+				"defaultPlatform": "ios"
+			},
+			"customCommands": [
+				{
+					"alias": "ready",
+					"description": "Complete deployment workflow: clean, update, install, build, and test",
+					"operations": [
+						{
+							"type": "clean_slate",
+							"description": "Clean uncommitted changes"
+						},
+						{
+							"type": "update",
+							"description": "Pull latest changes"
+						},
+						{
+							"type": "install",
+							"description": "Install dependencies"
+						},
+						{
+							"type": "build",
+							"description": "Build the project",
+							"parameters": {
+								"platform": "both"
+							}
+						},
+						{
+							"type": "test",
+							"description": "Run tests"
+						},
+						{
+							"type": "run",
+							"description": "Run for development and debugging"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Attentive React SDK",
 			"workingDirectory": "../../Xpaces/attentive-react-native-sdk",
 			"configuration": {
