@@ -93,7 +93,7 @@
 			"configuration": {
 				"defaultBranch": "main",
 				"savePreference": "stash",
-				"packageManager": "npm",
+				"packageManager": "yarn",
 				"defaultPlatform": "ios"
 			},
 			"customCommands": [
@@ -121,12 +121,11 @@
 							}
 						},
 						{
-							"type": "test",
-							"description": "Run tests"
-						},
-						{
-							"type": "run",
-							"description": "Run for development and debugging"
+							"type": "run_script",
+							"description": "Run for development and debugging",
+							"parameters": {
+								"scriptName": "dev:ios"
+							}
 						}
 					]
 				}

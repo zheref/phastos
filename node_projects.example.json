@@ -99,6 +99,62 @@
 							"description": "Reset Metro bundler cache"
 						}
 					]
+				},
+				{
+					"alias": "lint-and-format",
+					"description": "Run linting and formatting scripts",
+					"operations": [
+						{
+							"type": "run_script",
+							"description": "Run ESLint",
+							"parameters": {
+								"scriptName": "lint"
+							}
+						},
+						{
+							"type": "run_script",
+							"description": "Format code with Prettier",
+							"parameters": {
+								"scriptName": "format"
+							}
+						}
+					]
+				},
+				{
+					"alias": "pre-deploy",
+					"description": "Pre-deployment checks and build",
+					"operations": [
+						{
+							"type": "update",
+							"description": "Get latest code"
+						},
+						{
+							"type": "install",
+							"description": "Install dependencies"
+						},
+						{
+							"type": "run_script",
+							"description": "Run type checking",
+							"parameters": {
+								"scriptName": "type-check"
+							}
+						},
+						{
+							"type": "run_script",
+							"description": "Run tests",
+							"parameters": {
+								"scriptName": "test:ci"
+							}
+						},
+						{
+							"type": "build",
+							"description": "Build release",
+							"parameters": {
+								"platform": "both",
+								"mode": "release"
+							}
+						}
+					]
 				}
 			]
 		},
@@ -136,6 +192,27 @@
 							"parameters": {
 								"platform": "android",
 								"mode": "release"
+							}
+						}
+					]
+				},
+				{
+					"alias": "quality-check",
+					"description": "Run quality checks before commit",
+					"operations": [
+						{
+							"type": "run_script",
+							"description": "Lint code",
+							"parameters": {
+								"scriptName": "lint",
+								"packageManager": "yarn"
+							}
+						},
+						{
+							"type": "run_script",
+							"description": "Run unit tests",
+							"parameters": {
+								"scriptName": "test:unit"
 							}
 						}
 					]

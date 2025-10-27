@@ -18,7 +18,10 @@ export interface OperationParameters {
 	workingDirectory?: string // Custom working directory
 
 	// For 'install' operation
-	packageManager?: 'npm' | 'yarn' | 'pnpm' | 'bun'
+	packageManager?: 'npm' | 'yarn' | 'pnpm' | 'bun' | 'deno'
+
+	// For 'run_script' operation
+	scriptName?: string // Name of the script to run (e.g., "lint", "format", "deploy")
 
 	// For 'fresh' operation
 	changesetName?: string

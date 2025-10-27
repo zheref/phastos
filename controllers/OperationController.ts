@@ -127,6 +127,10 @@ export class OperationController {
 					result = await this.podInstall(workingDir)
 					break
 
+				case 'run_script':
+					result = await this.runScript(workingDir, parameters)
+					break
+
 				case 'custom':
 					result = await this.custom(workingDir, parameters)
 					break
@@ -689,6 +693,45 @@ export class OperationController {
 					`Created changeset ${localBranchName}`,
 				error: result.error,
 			}
+		}
+	}
+
+	/**
+	 * Run script operation - execute a package manager script
+	 */
+	private async runScript(
+		workingDir: string,
+		parameters: OperationParameters,
+	): Promise<OperationResult> {
+		if (!parameters.scriptName) {
+			this.logger.warning(
+				'Run script operation requires a "scriptName" parameter',
+			)
+			return {
+				success: false,
+				message:
+					'Run script operation requires a "scriptName" parameter',
+			}
+		}
+
+		this.logger.verbose(`Running script: ${parameters.scriptName}`)
+		if (parameters.packageManager) {
+			this.logger.verbose(
+				`Using package manager: ${parameters.packageManager}`,
+			)
+		}
+
+		const result = await reactNativeService.runScript(
+			workingDir,
+			parameters.scriptName,
+			parameters.packageManager,
+		)
+
+		return {
+			success: result.success,
+			message: result.output ||
+				`Script '${parameters.scriptName}' executed`,
+			error: result.error,
 		}
 	}
 

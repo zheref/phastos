@@ -18,7 +18,7 @@ export interface RNOperationResult {
 /**
  * Package manager type
  */
-export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun'
+export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun' | 'deno'
 
 /**
  * Service class for React Native operations
@@ -33,8 +33,10 @@ export class ReactNativeService {
 		workingDirectory: string,
 	): Promise<PackageManager> {
 		try {
-			// Check for lock files to determine package manager
+			// Check for lock files and config files to determine package manager
 			const checks = [
+				{ file: 'deno.json', manager: 'deno' as PackageManager },
+				{ file: 'deno.jsonc', manager: 'deno' as PackageManager },
 				{ file: 'bun.lockb', manager: 'bun' as PackageManager },
 				{ file: 'pnpm-lock.yaml', manager: 'pnpm' as PackageManager },
 				{ file: 'yarn.lock', manager: 'yarn' as PackageManager },
@@ -438,6 +440,82 @@ export class ReactNativeService {
 
 			if (result.success) {
 				return { success: true, output }
+			} else {
+				const error = new TextDecoder().decode(result.stderr)
+				return { success: false, error }
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+			}
+		}
+	}
+
+	/**
+	 * Runs a package manager script (npm run, yarn, deno task, etc.)
+	 * @param workingDirectory - Path to project
+	 * @param scriptName - Name of the script to run
+	 * @param packageManager - Optional package manager override
+	 * @returns Operation result
+	 */
+	async runScript(
+		workingDirectory: string,
+		scriptName: string,
+		packageManager?: PackageManager,
+	): Promise<RNOperationResult> {
+		try {
+			const pm = packageManager ||
+				(await this.detectPackageManager(workingDirectory))
+
+			// Determine the command and args based on package manager
+			let command: string
+			let args: string[]
+
+			switch (pm) {
+				case 'npm':
+					command = 'npm'
+					args = ['run', scriptName]
+					break
+				case 'yarn':
+					command = 'yarn'
+					args = [scriptName]
+					break
+				case 'pnpm':
+					command = 'pnpm'
+					args = [scriptName]
+					break
+				case 'bun':
+					command = 'bun'
+					args = ['run', scriptName]
+					break
+				case 'deno':
+					command = 'deno'
+					args = ['task', scriptName]
+					break
+				default:
+					return {
+						success: false,
+						error: `Unsupported package manager: ${pm}`,
+					}
+			}
+
+			const cmd = new Deno.Command(command, {
+				args,
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await cmd.output()
+
+			if (result.success) {
+				const _output = new TextDecoder().decode(result.stdout)
+				return {
+					success: true,
+					output:
+						`Script '${scriptName}' completed successfully using ${pm}`,
+				}
 			} else {
 				const error = new TextDecoder().decode(result.stderr)
 				return { success: false, error }

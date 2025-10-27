@@ -13,4 +13,5 @@ export type OperationType =
 	| 'pod_install' // Run pod install (iOS only)
 	| 'fresh' // Create a fresh changeset
 	| 'switch_changeset' // Switch to changeset or checkout remote branch
+	| 'run_script' // Run package manager script (npm run, yarn run, deno task, etc.)
 	| 'custom' // Custom shell command
