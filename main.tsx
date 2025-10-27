@@ -8,12 +8,12 @@
  *
  * @jsxImportSource npm:react@18.3.1
  */
-import React from 'npm:react@18.3.1'
 import { Box, render, Text } from 'npm:ink@4.4.1'
+import React from 'npm:react@18.3.1'
 import { commands } from './commands/index.ts'
-import { renderInteractiveView } from './views/InteractiveView.tsx'
-import { renderInitPrompt } from './views/InitPromptView.tsx'
 import { projectLoader, ProjectLoadError } from './services/ProjectLoader.ts'
+import { renderInitPrompt } from './views/InitPromptView.tsx'
+import { renderInteractiveView } from './views/InteractiveView.tsx'
 
 /**
  * Renders help/usage information
@@ -84,6 +84,8 @@ function showHelp(): void {
 					<Text>• run - Run on simulator/emulator</Text>
 					<Text>• reset - Reset React Native cache</Text>
 					<Text>• pod_install - Install iOS CocoaPods</Text>
+					<Text>• fresh - Create a fresh changeset</Text>
+					<Text>• switch - Switch or create changeset</Text>
 					<Text dimColor>
 						• Plus any custom commands from node_projects.json
 					</Text>

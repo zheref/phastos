@@ -50,6 +50,10 @@ phastos
 
 Then select a project. The project information will be displayed automatically before you choose an operation.
 
+## Related Features
+
+- **Changeset Switching**: See [FEATURE_CHANGESET_SWITCHING.md](FEATURE_CHANGESET_SWITCHING.md) for details on switching between changesets and remote branches
+
 ## Technical Details
 
 ### New GitService Methods

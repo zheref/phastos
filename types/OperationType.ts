@@ -12,4 +12,5 @@ export type OperationType =
 	| 'reset' // Reset React Native cache and dependencies
 	| 'pod_install' // Run pod install (iOS only)
 	| 'fresh' // Create a fresh changeset
+	| 'switch_changeset' // Switch to changeset or checkout remote branch
 	| 'custom' // Custom shell command

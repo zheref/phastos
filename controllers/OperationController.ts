@@ -78,6 +78,13 @@ export class OperationController {
 					)
 					break
 
+				case 'switch_changeset':
+					result = await this.switchChangeset(
+						workingDir,
+						parameters,
+					)
+					break
+
 				case 'save':
 					result = await this.save(
 						workingDir,
@@ -576,6 +583,83 @@ export class OperationController {
 		return {
 			success: true,
 			message: 'Changeset created/started successfully',
+		}
+	}
+
+	/**
+	 * Switch changeset operation - switch to local changeset or checkout remote branch
+	 * @param workingDir - Path to the working directory
+	 * @param parameters - Operation parameters including branchName and branchType
+	 * @returns Operation result
+	 */
+	private async switchChangeset(
+		workingDir: string,
+		parameters: OperationParameters,
+	): Promise<OperationResult> {
+		if (!parameters.branchName) {
+			this.logger.warning(
+				'Switch changeset requires a "branchName" parameter',
+			)
+			return {
+				success: false,
+				message: 'Branch name is required',
+			}
+		}
+
+		const branchType = parameters.branchType || 'local'
+
+		if (branchType === 'local') {
+			// Switch to existing local branch
+			this.logger.verbose(
+				`Switching to local branch: ${parameters.branchName}`,
+			)
+			const result = await gitService.switchToBranch(
+				workingDir,
+				parameters.branchName,
+				this.logger,
+			)
+
+			return {
+				success: result.success,
+				message: result.output ||
+					`Switched to ${parameters.branchName}`,
+				error: result.error,
+			}
+		} else {
+			// Checkout remote branch as new local changeset
+			const remoteBranch = parameters.branchName
+			const branchNameWithoutOrigin = remoteBranch.replace(
+				/^origin\//,
+				'',
+			)
+
+			// Use custom local name if provided, otherwise create changeset/ branch
+			let localBranchName = parameters.localChangesetName
+			if (!localBranchName) {
+				// Add changeset/ prefix if not already there
+				localBranchName =
+					branchNameWithoutOrigin.startsWith('changeset/')
+						? branchNameWithoutOrigin
+						: `changeset/${branchNameWithoutOrigin}`
+			}
+
+			this.logger.verbose(
+				`Checking out remote branch ${remoteBranch} as ${localBranchName}`,
+			)
+
+			const result = await gitService.checkoutRemoteBranch(
+				workingDir,
+				remoteBranch,
+				localBranchName,
+				this.logger,
+			)
+
+			return {
+				success: result.success,
+				message: result.output ||
+					`Created changeset ${localBranchName}`,
+				error: result.error,
+			}
 		}
 	}
 

@@ -728,6 +728,206 @@ export class GitService {
 	}
 
 	/**
+	 * Gets all local branches
+	 * @param workingDirectory - Path to Git repository
+	 * @returns Array of local branch names
+	 */
+	async getLocalBranches(
+		workingDirectory: string,
+	): Promise<string[]> {
+		try {
+			const command = new Deno.Command('git', {
+				args: ['branch', '--format=%(refname:short)'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await command.output()
+			if (result.success) {
+				return new TextDecoder().decode(result.stdout)
+					.trim()
+					.split('\n')
+					.filter((branch) => branch)
+			}
+			return []
+		} catch {
+			return []
+		}
+	}
+
+	/**
+	 * Gets local branches that match a prefix pattern (e.g., "changeset/")
+	 * @param workingDirectory - Path to Git repository
+	 * @param prefix - Branch prefix to filter by
+	 * @returns Array of matching local branch names
+	 */
+	async getLocalBranchesByPrefix(
+		workingDirectory: string,
+		prefix: string,
+	): Promise<string[]> {
+		try {
+			const allBranches = await this.getLocalBranches(workingDirectory)
+			return allBranches.filter((branch) => branch.startsWith(prefix))
+		} catch {
+			return []
+		}
+	}
+
+	/**
+	 * Gets all remote branches sorted by most recent commit date
+	 * @param workingDirectory - Path to Git repository
+	 * @param includeDate - Whether to include date information
+	 * @returns Array of remote branch names or objects with branch and date
+	 */
+	async getAllRemoteBranches(
+		workingDirectory: string,
+		includeDate = false,
+	): Promise<string[] | Array<{ branch: string; date: Date | null }>> {
+		try {
+			// Fetch remote refs
+			const fetchCommand = new Deno.Command('git', {
+				args: ['fetch', '--prune'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+			await fetchCommand.output()
+
+			// Get all remote branches
+			const remoteBranchesCommand = new Deno.Command('git', {
+				args: ['branch', '-r', '--format=%(refname:short)'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const remoteBranchesResult = await remoteBranchesCommand.output()
+			if (!remoteBranchesResult.success) return []
+
+			const remoteBranches = new TextDecoder().decode(
+				remoteBranchesResult.stdout,
+			)
+				.trim()
+				.split('\n')
+				.filter((branch) => branch && !branch.includes('HEAD'))
+
+			// Get commit dates for each branch and sort by recency
+			const branchesWithDates = await Promise.all(
+				remoteBranches.map(async (branch) => {
+					try {
+						const dateCommand = new Deno.Command('git', {
+							args: ['log', '-1', '--format=%ct', branch],
+							cwd: workingDirectory,
+							stdout: 'piped',
+							stderr: 'piped',
+						})
+						const dateResult = await dateCommand.output()
+						if (dateResult.success) {
+							const timestamp = new TextDecoder().decode(
+								dateResult.stdout,
+							).trim()
+							const date = timestamp
+								? parseInt(timestamp) * 1000
+								: 0
+							return { branch, date }
+						}
+						return { branch, date: 0 }
+					} catch {
+						return { branch, date: 0 }
+					}
+				}),
+			)
+
+			// Sort by date (most recent first)
+			const sorted = branchesWithDates.sort((a, b) => b.date - a.date)
+
+			// Return with or without dates based on includeDate parameter
+			if (includeDate) {
+				return sorted.map((item) => ({
+					branch: item.branch,
+					date: item.date > 0 ? new Date(item.date) : null,
+				}))
+			}
+
+			return sorted.map((item) => item.branch)
+		} catch {
+			return []
+		}
+	}
+
+	/**
+	 * Checks out a remote branch as a new local branch
+	 * Fetches latest remote changes first to ensure branch is up-to-date
+	 * @param workingDirectory - Path to Git repository
+	 * @param remoteBranch - Remote branch name (e.g., "origin/feature-branch")
+	 * @param localBranchName - Optional local branch name, defaults to remote branch name without origin/
+	 * @param logger - Optional logger for operation tracking
+	 * @returns Operation result
+	 */
+	async checkoutRemoteBranch(
+		workingDirectory: string,
+		remoteBranch: string,
+		localBranchName?: string,
+		logger?: Logger,
+	): Promise<GitOperationResult> {
+		try {
+			// Fetch latest remote changes first
+			logger?.verbose('Fetching latest remote changes...')
+			const fetchCommand = new Deno.Command('git', {
+				args: ['fetch', '--prune'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+			await fetchCommand.output()
+
+			const branchName = localBranchName ||
+				remoteBranch.replace(/^origin\//, '')
+			logger?.verbose(
+				`Checking out remote branch ${remoteBranch} as ${branchName}`,
+			)
+
+			// Create and checkout new local branch from remote branch
+			// This will:
+			// 1. Create a new local branch at the remote branch's current commit
+			// 2. Switch to that branch
+			// 3. Set up tracking between local and remote branch
+			const command = new Deno.Command('git', {
+				args: ['checkout', '-b', branchName, remoteBranch],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await command.output()
+
+			if (result.success) {
+				logger?.log(
+					`Successfully checked out ${branchName} with latest changes from ${remoteBranch}`,
+				)
+				return {
+					success: true,
+					output: `Successfully checked out ${branchName}`,
+				}
+			} else {
+				const error = new TextDecoder().decode(result.stderr)
+				logger?.error('Failed to checkout remote branch', error)
+				return { success: false, error }
+			}
+		} catch (error) {
+			const errorMsg = error instanceof Error
+				? error.message
+				: 'Unknown error'
+			logger?.error('Checkout remote branch operation failed', errorMsg)
+			return {
+				success: false,
+				error: errorMsg,
+			}
+		}
+	}
+
+	/**
 	 * Clones a repository to a specified directory
 	 * @param repositoryURL - URL of the Git repository
 	 * @param targetDirectory - Where to clone the repository

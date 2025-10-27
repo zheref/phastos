@@ -21,6 +21,10 @@ import type {
 } from '../models/Project.ts'
 import { gitService } from '../services/GitService.ts'
 import { Logger } from '../services/Logger.ts'
+import {
+	type BranchOption,
+	ChangesetSwitchView,
+} from './ChangesetSwitchView.tsx'
 import { CompactLogsView } from './LogsView.tsx'
 import { type ProjectGitInfo, ProjectInfoView } from './ProjectInfoView.tsx'
 
@@ -46,6 +50,7 @@ type ViewState =
 	| 'project-selection'
 	| 'loading-project-info'
 	| 'operation-selection'
+	| 'changeset-selection'
 	| 'parameter-input'
 	| 'executing'
 	| 'result'
@@ -62,6 +67,10 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	const [projectGitInfo, setProjectGitInfo] = useState<ProjectGitInfo | null>(
 		null,
 	)
+	const [localChangesets, setLocalChangesets] = useState<string[]>([])
+	const [remoteBranchesForSwitch, setRemoteBranchesForSwitch] = useState<
+		Array<{ branch: string; date: Date | null }>
+	>([])
 	const [currentOperation, setCurrentOperation] = useState<string>('')
 	const [selectedOperationType, setSelectedOperationType] = useState<string>(
 		'',
@@ -176,6 +185,14 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	const handleOperationSelect = async (item: MenuItem) => {
 		if (!selectedProject) return
 
+		// Check if this is the changeset switch operation
+		if (item.value === 'switch_changeset') {
+			// Load branches for changeset switching
+			await loadChangesetBranches()
+			setState('changeset-selection')
+			return
+		}
+
 		// Check if this operation requires parameters
 		if (item.value === 'fresh') {
 			// Store the operation and show parameter input
@@ -187,6 +204,50 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 
 		// Execute operation directly
 		await executeOperation(item.value, item.label, {})
+	}
+
+	/**
+	 * Loads branches for changeset switching
+	 */
+	const loadChangesetBranches = async () => {
+		if (!selectedProject) return
+
+		try {
+			// Get local branches with "changeset/" prefix
+			const changesets = await gitService.getLocalBranchesByPrefix(
+				selectedProject.workingDirectory,
+				'changeset/',
+			)
+			setLocalChangesets(changesets)
+
+			// Get all remote branches with dates, sorted by most recent
+			const remoteBranches = (await gitService.getAllRemoteBranches(
+				selectedProject.workingDirectory,
+				true,
+			)) as Array<{ branch: string; date: Date | null }>
+			setRemoteBranchesForSwitch(remoteBranches)
+		} catch (error) {
+			console.error('Error loading changeset branches:', error)
+			setLocalChangesets([])
+			setRemoteBranchesForSwitch([])
+		}
+	}
+
+	/**
+	 * Handles changeset/branch selection
+	 */
+	const handleChangesetSelect = async (option: BranchOption) => {
+		if (!selectedProject) return
+
+		const operationLabel = option.type === 'local'
+			? `Switch - Switching to ${option.value}`
+			: `Switch - Creating changeset from ${option.value}`
+
+		// Execute the operation through OperationController
+		await executeOperation('switch_changeset', operationLabel, {
+			branchName: option.value,
+			branchType: option.type,
+		})
 	}
 
 	/**
@@ -359,6 +420,10 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 			{ label: 'Reset - Reset cache', value: 'reset' },
 			{ label: 'Pod Install - Install iOS pods', value: 'pod_install' },
 			{ label: 'Fresh - Create a fresh changeset', value: 'fresh' },
+			{
+				label: 'Switch - Switch or create changeset',
+				value: 'switch_changeset',
+			},
 		]
 
 		// Add custom commands
@@ -402,6 +467,21 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 					</Text>
 				</Box>
 			</Box>
+		)
+	}
+
+	/**
+	 * Render changeset selection screen
+	 */
+	if (state === 'changeset-selection' && selectedProject) {
+		return (
+			<ChangesetSwitchView
+				projectName={selectedProject.name}
+				localChangesets={localChangesets}
+				remoteBranches={remoteBranchesForSwitch}
+				currentBranch={projectGitInfo?.currentBranch || null}
+				onSelect={handleChangesetSelect}
+			/>
 		)
 	}
 

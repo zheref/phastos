@@ -23,6 +23,11 @@ export interface OperationParameters {
 	// For 'fresh' operation
 	changesetName?: string
 
+	// For 'switch_changeset' operation
+	branchName?: string // Branch name to switch to
+	branchType?: 'local' | 'remote' // Whether it's a local or remote branch
+	localChangesetName?: string // Custom name for local changeset when checking out remote
+
 	// General parameters
 	verbose?: boolean
 	skipConfirmation?: boolean
