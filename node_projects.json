@@ -124,7 +124,7 @@
 							"type": "run_script",
 							"description": "Run for development and debugging",
 							"parameters": {
-								"scriptName": "dev:ios"
+								"scriptName": "dev"
 							}
 						}
 					]
