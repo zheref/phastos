@@ -119,8 +119,13 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 
 			const isMainBranch = currentBranch === mainBranch
 
-			// Get changeset
+			// Get changeset (uncommitted changes)
 			const changeset = await gitService.getChangeset(
+				project.workingDirectory,
+			)
+
+			// Get local changesets with tracking info
+			const localChangesets = await gitService.getChangesetsWithTracking(
 				project.workingDirectory,
 			)
 
@@ -138,12 +143,22 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				)
 			}
 
-			// Get unsynced remote branches with dates
-			const unsyncedRemoteBranchesWithDates = await gitService
+			// Get all remote branches with dates
+			const allRemoteBranchesWithDates = await gitService
 				.getUnsyncedRemoteBranches(
 					project.workingDirectory,
 					true,
 				) as Array<{ branch: string; date: Date | null }>
+
+			// Filter out remote branches that already have local changesets
+			const trackedRemoteBranches = new Set(
+				localChangesets
+					.map((cs) => cs.trackingBranch)
+					.filter((tb) => tb !== null) as string[],
+			)
+
+			const unsyncedRemoteBranchesWithDates = allRemoteBranchesWithDates
+				.filter((item) => !trackedRemoteBranches.has(item.branch))
 
 			// Extract just the branch names for backward compatibility
 			const unsyncedRemoteBranches = unsyncedRemoteBranchesWithDates.map(
@@ -155,6 +170,7 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				isMainBranch,
 				mainBranch,
 				changeset,
+				localChangesets,
 				lastSyncFromMain,
 				unsyncedRemoteBranches,
 				unsyncedRemoteBranchesWithDates,
@@ -339,6 +355,11 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 					setState('exiting')
 					setTimeout(() => exit(), 100)
 				} else if (input === 'b') {
+					// Reload project info when going back to operation selection
+					// to refresh changeset list and remote branches
+					if (selectedProject) {
+						loadProjectGitInfo(selectedProject)
+					}
 					setState('operation-selection')
 					setOperationResult(null)
 				} else if (input === 'h') {

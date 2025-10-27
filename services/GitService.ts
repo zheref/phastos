@@ -757,6 +757,70 @@ export class GitService {
 	}
 
 	/**
+	 * Gets the tracking remote branch for a local branch
+	 * @param workingDirectory - Path to Git repository
+	 * @param branchName - Local branch name
+	 * @returns Remote tracking branch name or null if not tracking
+	 */
+	async getTrackingBranch(
+		workingDirectory: string,
+		branchName: string,
+	): Promise<string | null> {
+		try {
+			const command = new Deno.Command('git', {
+				args: [
+					'rev-parse',
+					'--abbrev-ref',
+					`${branchName}@{upstream}`,
+				],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await command.output()
+			if (result.success) {
+				return new TextDecoder().decode(result.stdout).trim()
+			}
+			return null
+		} catch {
+			return null
+		}
+	}
+
+	/**
+	 * Gets local changesets with their tracking remote branches
+	 * @param workingDirectory - Path to Git repository
+	 * @param prefix - Changeset prefix (default: "changeset/")
+	 * @returns Array of changesets with tracking info
+	 */
+	async getChangesetsWithTracking(
+		workingDirectory: string,
+		prefix: string = 'changeset/',
+	): Promise<Array<{ branch: string; trackingBranch: string | null }>> {
+		try {
+			const changesets = await this.getLocalBranchesByPrefix(
+				workingDirectory,
+				prefix,
+			)
+
+			const changesetsWithTracking = await Promise.all(
+				changesets.map(async (branch) => {
+					const trackingBranch = await this.getTrackingBranch(
+						workingDirectory,
+						branch,
+					)
+					return { branch, trackingBranch }
+				}),
+			)
+
+			return changesetsWithTracking
+		} catch {
+			return []
+		}
+	}
+
+	/**
 	 * Gets local branches that match a prefix pattern (e.g., "changeset/")
 	 * @param workingDirectory - Path to Git repository
 	 * @param prefix - Branch prefix to filter by

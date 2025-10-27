@@ -14,6 +14,7 @@ export interface ProjectGitInfo {
 	isMainBranch: boolean
 	mainBranch: string | null
 	changeset: Array<{ status: string; file: string }>
+	localChangesets?: Array<{ branch: string; trackingBranch: string | null }>
 	lastSyncFromMain: Date | null
 	unsyncedRemoteBranches: string[]
 	unsyncedRemoteBranchesWithDates?: Array<
@@ -181,6 +182,38 @@ export const ProjectInfoView = ({
 						<Text color='cyan'>
 							{formatRelativeTime(gitInfo.lastSyncFromMain)}
 						</Text>
+					</Box>
+				</Box>
+			)}
+
+			{/* Local Changesets */}
+			{gitInfo.localChangesets && gitInfo.localChangesets.length > 0 && (
+				<Box marginBottom={1} flexDirection='column'>
+					<Box marginBottom={0}>
+						<Text bold color='cyan'>
+							Open Changesets ({gitInfo.localChangesets.length}):
+						</Text>
+					</Box>
+					<Box flexDirection='column' marginLeft={2}>
+						{gitInfo.localChangesets.map((changeset, idx) => {
+							const isCurrent = changeset.branch ===
+								gitInfo.currentBranch
+							return (
+								<Box key={idx}>
+									<Text color={isCurrent ? 'green' : 'cyan'}>
+										{changeset.branch}
+										{isCurrent && ' (current)'}
+									</Text>
+									{changeset.trackingBranch && (
+										<Box marginLeft={1}>
+											<Text dimColor>
+												→ {changeset.trackingBranch}
+											</Text>
+										</Box>
+									)}
+								</Box>
+							)
+						})}
 					</Box>
 				</Box>
 			)}
