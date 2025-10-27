@@ -1,0 +1,95 @@
+{
+	"version": "1.0",
+	"projects": [
+		{
+			"name": "test-project",
+			"workingDirectory": ".",
+			"configuration": {
+				"defaultBranch": "main",
+				"savePreference": "stash",
+				"packageManager": "npm",
+				"defaultPlatform": "ios"
+			},
+			"customCommands": [
+				{
+					"alias": "cosmic-deploy",
+					"description": "Complete deployment workflow: clean, update, install, build, and test",
+					"operations": [
+						{
+							"type": "clean_slate",
+							"description": "Clean uncommitted changes"
+						},
+						{
+							"type": "update",
+							"description": "Pull latest changes"
+						},
+						{
+							"type": "install",
+							"description": "Install dependencies"
+						},
+						{
+							"type": "build",
+							"description": "Build the project",
+							"parameters": {
+								"platform": "both"
+							}
+						},
+						{
+							"type": "test",
+							"description": "Run tests"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "FoodDiary",
+			"workingDirectory": "../../Spaces/food-diary",
+			"repositoryURL": "https://github.com/zheref/food-diary.git",
+			"configuration": {
+				"defaultBranch": "main",
+				"savePreference": "stash",
+				"packageManager": "npm",
+				"defaultPlatform": "ios",
+				"defaultDevice": "iPhone 16",
+				"iosScheme": "fooddiary",
+				"androidFlavor": "development"
+			},
+			"customCommands": [
+				{
+					"alias": "ready",
+					"description": "Complete development flow to be ready to debug and work",
+					"operations": [
+						{
+							"type": "clean_slate",
+							"description": "Clean uncommitted changes"
+						},
+						{
+							"type": "update",
+							"description": "Pull latest changes"
+						},
+						{
+							"type": "install",
+							"description": "Install dependencies"
+						},
+						{
+							"type": "build",
+							"description": "Build the project",
+							"parameters": {
+								"platform": "both"
+							}
+						},
+						{
+							"type": "test",
+							"description": "Run tests"
+						},
+						{
+							"type": "run",
+							"description": "Run for development and debugging"
+						}
+					]
+				}
+			]
+		}
+	]
+}

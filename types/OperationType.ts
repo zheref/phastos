@@ -11,5 +11,5 @@ export type OperationType =
 	| 'run' // Run the app on simulator/emulator
 	| 'reset' // Reset React Native cache and dependencies
 	| 'pod_install' // Run pod install (iOS only)
-	| 'fresh'
+	| 'fresh' // Create a fresh changeset
 	| 'custom' // Custom shell command

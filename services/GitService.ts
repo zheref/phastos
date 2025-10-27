@@ -46,8 +46,14 @@ export class GitService {
 	 * @param workingDirectory - Path to check
 	 * @returns True if directory is a Git repo
 	 */
-	async isGitRepository(workingDirectory: string): Promise<boolean> {
+	async isGitRepository(
+		workingDirectory: string,
+		logger?: Logger,
+	): Promise<boolean> {
 		try {
+			logger?.verbose(
+				`Checking if directory (${workingDirectory}) is a Git repository...`,
+			)
 			const command = new Deno.Command('git', {
 				args: ['rev-parse', '--is-inside-work-tree'],
 				cwd: workingDirectory,
@@ -55,8 +61,9 @@ export class GitService {
 				stderr: 'piped',
 			})
 
-			const { success } = await command.output()
-			return success
+			const output = await command.output()
+			logger?.log(new TextDecoder().decode(output.stdout).trim())
+			return output.success
 		} catch {
 			return false
 		}

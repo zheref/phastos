@@ -192,7 +192,10 @@ export class OperationController {
 		this.logger.verbose('Checking if directory is a git repository...')
 
 		// Check if git repository
-		const isGitRepo = await gitService.isGitRepository(workingDir)
+		const isGitRepo = await gitService.isGitRepository(
+			workingDir,
+			this.logger,
+		)
 		if (!isGitRepo) {
 			this.logger.warning('Not a git repository')
 			return {
@@ -386,7 +389,7 @@ export class OperationController {
 		const mode = parameters.mode || 'debug'
 
 		this.logger.verbose(
-			`Running app on ${platform}${
+			`Running app on ${platform}/${
 				device ? ` (${device})` : ''
 			} in ${mode} mode...`,
 		)
