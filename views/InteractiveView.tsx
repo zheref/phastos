@@ -346,6 +346,85 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	}
 
 	/**
+	 * Handle keyboard input for operation selection screen
+	 */
+	useInput(
+		(input, _key) => {
+			if (state === 'operation-selection' && selectedProject) {
+				// Map keyboard shortcuts to operations
+				const keyMap: Record<string, string> = {
+					'c': 'clean_slate',
+					's': 'save',
+					'u': 'update',
+					'i': 'install',
+					'b': 'build',
+					't': 'test',
+					'r': 'run',
+					'e': 'reset',
+					'p': 'pod_install',
+					'f': 'fresh',
+					'w': 'switch_changeset',
+				}
+
+				// Check for quit command
+				if (input === 'q') {
+					setState('exiting')
+					setTimeout(() => exit(), 100)
+					return
+				}
+
+				// Check if a valid shortcut was pressed
+				const operationType = keyMap[input.toLowerCase()]
+				if (operationType) {
+					// Find the matching operation
+					const operation = [
+						{
+							label: 'Clean Slate - Discard uncommitted changes',
+							value: 'clean_slate',
+						},
+						{
+							label: 'Save - Stash or branch changes',
+							value: 'save',
+						},
+						{
+							label: 'Update - Pull latest changes',
+							value: 'update',
+						},
+						{
+							label: 'Install - Install dependencies',
+							value: 'install',
+						},
+						{ label: 'Build - Build the project', value: 'build' },
+						{ label: 'Test - Run tests', value: 'test' },
+						{
+							label: 'Run - Run on simulator/emulator',
+							value: 'run',
+						},
+						{ label: 'Reset - Reset cache', value: 'reset' },
+						{
+							label: 'Pod Install - Install iOS pods',
+							value: 'pod_install',
+						},
+						{
+							label: 'Fresh - Create a fresh changeset',
+							value: 'fresh',
+						},
+						{
+							label: 'Switch - Switch or create changeset',
+							value: 'switch_changeset',
+						},
+					].find((op) => op.value === operationType)
+
+					if (operation) {
+						handleOperationSelect(operation)
+					}
+				}
+			}
+		},
+		{ isActive: state === 'operation-selection' },
+	)
+
+	/**
 	 * Handle keyboard input for result screen
 	 */
 	useInput(
@@ -482,9 +561,25 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 					onSelect={handleOperationSelect}
 				/>
 
-				<Box marginTop={1}>
+				<Box marginTop={1} flexDirection='column'>
 					<Text dimColor>
 						Use arrow keys to navigate, Enter to select
+					</Text>
+					<Text dimColor>
+						Or press: <Text color='cyan'>c</Text>=Clean Slate,{' '}
+						<Text color='cyan'>s</Text>=Save,{' '}
+						<Text color='cyan'>u</Text>=Update,{' '}
+						<Text color='cyan'>i</Text>=Install,{' '}
+						<Text color='cyan'>b</Text>=Build,{' '}
+						<Text color='cyan'>t</Text>=Test,{' '}
+						<Text color='cyan'>r</Text>=Run
+					</Text>
+					<Text dimColor>
+						<Text color='cyan'>e</Text>=Reset,{' '}
+						<Text color='cyan'>p</Text>=Pod Install,{' '}
+						<Text color='cyan'>f</Text>=Fresh,{' '}
+						<Text color='cyan'>w</Text>=Switch,{' '}
+						<Text color='red'>q</Text>=Quit
 					</Text>
 				</Box>
 			</Box>
