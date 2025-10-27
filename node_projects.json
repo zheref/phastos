@@ -88,6 +88,51 @@
 			]
 		},
 		{
+			"name": "Rider Portal App",
+			"workingDirectory": "../../Xpaces/portal-spa",
+			"configuration": {
+				"defaultBranch": "main",
+				"savePreference": "stash",
+				"packageManager": "npm",
+				"defaultPlatform": "ios"
+			},
+			"customCommands": [
+				{
+					"alias": "Ready",
+					"description": "Complete deployment workflow: clean, update, install, build, and test",
+					"operations": [
+						{
+							"type": "clean_slate",
+							"description": "Clean uncommitted changes"
+						},
+						{
+							"type": "update",
+							"description": "Pull latest changes"
+						},
+						{
+							"type": "install",
+							"description": "Install dependencies"
+						},
+						{
+							"type": "build",
+							"description": "Build the project",
+							"parameters": {
+								"platform": "both"
+							}
+						},
+						{
+							"type": "test",
+							"description": "Run tests"
+						},
+						{
+							"type": "run",
+							"description": "Run for development and debugging"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Attentive React SDK",
 			"workingDirectory": "../../Xpaces/attentive-react-native-sdk",
 			"configuration": {
