@@ -129,11 +129,17 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				)
 			}
 
-			// Get unsynced remote branches
-			const unsyncedRemoteBranches = await gitService
+			// Get unsynced remote branches with dates
+			const unsyncedRemoteBranchesWithDates = await gitService
 				.getUnsyncedRemoteBranches(
 					project.workingDirectory,
-				)
+					true,
+				) as Array<{ branch: string; date: Date | null }>
+
+			// Extract just the branch names for backward compatibility
+			const unsyncedRemoteBranches = unsyncedRemoteBranchesWithDates.map(
+				(item) => item.branch,
+			)
 
 			setProjectGitInfo({
 				currentBranch,
@@ -142,6 +148,7 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 				changeset,
 				lastSyncFromMain,
 				unsyncedRemoteBranches,
+				unsyncedRemoteBranchesWithDates,
 				divergence,
 			})
 		} catch (error) {

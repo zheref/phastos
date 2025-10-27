@@ -584,12 +584,15 @@ export class GitService {
 
 	/**
 	 * Gets list of remote branches that haven't been synced locally
+	 * Sorted by most recent commit date first
 	 * @param workingDirectory - Path to Git repository
-	 * @returns Array of remote branch names
+	 * @param includeDate - Whether to include date information in return value
+	 * @returns Array of remote branch names sorted by recency, or array of objects with branch and date if includeDate is true
 	 */
 	async getUnsyncedRemoteBranches(
 		workingDirectory: string,
-	): Promise<string[]> {
+		includeDate = false,
+	): Promise<string[] | Array<{ branch: string; date: Date | null }>> {
 		try {
 			// First fetch remote refs
 			const fetchCommand = new Deno.Command('git', {
@@ -643,7 +646,45 @@ export class GitService {
 				return !localBranches.includes(branchName)
 			})
 
-			return unsyncedBranches
+			// Get commit dates for each unsynced branch and sort by recency
+			const branchesWithDates = await Promise.all(
+				unsyncedBranches.map(async (branch) => {
+					try {
+						const dateCommand = new Deno.Command('git', {
+							args: ['log', '-1', '--format=%ct', branch],
+							cwd: workingDirectory,
+							stdout: 'piped',
+							stderr: 'piped',
+						})
+						const dateResult = await dateCommand.output()
+						if (dateResult.success) {
+							const timestamp = new TextDecoder().decode(
+								dateResult.stdout,
+							).trim()
+							const date = timestamp
+								? parseInt(timestamp) * 1000
+								: 0
+							return { branch, date }
+						}
+						return { branch, date: 0 }
+					} catch {
+						return { branch, date: 0 }
+					}
+				}),
+			)
+
+			// Sort by date (most recent first)
+			const sorted = branchesWithDates.sort((a, b) => b.date - a.date)
+
+			// Return with or without dates based on includeDate parameter
+			if (includeDate) {
+				return sorted.map((item) => ({
+					branch: item.branch,
+					date: item.date > 0 ? new Date(item.date) : null,
+				}))
+			}
+
+			return sorted.map((item) => item.branch)
 		} catch {
 			return []
 		}

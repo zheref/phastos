@@ -33,6 +33,7 @@ When you select a project in the interactive CLI, Phastos now displays comprehen
 ### 5. Remote Branches Not Synced Locally
 
 - Lists all branches that exist on the remote repository but haven't been checked out locally
+- **Sorted by most recent activity** - branches with the newest commits appear first
 - Shows up to 5 branches with a count of additional branches if more exist
 
 ### 6. Clean State Message
@@ -65,6 +66,8 @@ The following methods were added to `GitService`:
 3. **`getUnsyncedRemoteBranches(workingDirectory: string)`**
    - Returns array of remote branches not synced locally
    - Fetches remote refs first to ensure up-to-date information
+   - Retrieves last commit date for each branch
+   - Sorts branches by most recent commit date (newest first)
 
 4. **`getBranchDivergence(workingDirectory: string, mainBranch: string)`**
    - Returns object with `ahead` and `behind` commit counts
@@ -106,8 +109,8 @@ Uncommitted Changes (3):
   [Untracked] src/utils/helpers.ts
 
 Remote Branches Not Synced Locally (2):
-  origin/feature/experimental
-  origin/hotfix/bug-123
+  origin/hotfix/bug-123 (3 hours ago)
+  origin/feature/experimental (2 days ago)
 
 Select an operation:
 ```

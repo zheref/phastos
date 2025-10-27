@@ -16,6 +16,9 @@ export interface ProjectGitInfo {
 	changeset: Array<{ status: string; file: string }>
 	lastSyncFromMain: Date | null
 	unsyncedRemoteBranches: string[]
+	unsyncedRemoteBranchesWithDates?: Array<
+		{ branch: string; date: Date | null }
+	>
 	divergence: { ahead: number; behind: number }
 }
 
@@ -220,13 +223,36 @@ export const ProjectInfoView = ({
 						</Text>
 					</Box>
 					<Box flexDirection='column' marginLeft={2}>
-						{gitInfo.unsyncedRemoteBranches.slice(0, 5).map(
-							(branch, idx) => (
-								<Box key={idx}>
-									<Text color='cyan'>{branch}</Text>
-								</Box>
-							),
-						)}
+						{gitInfo.unsyncedRemoteBranchesWithDates
+							? gitInfo.unsyncedRemoteBranchesWithDates.slice(
+								0,
+								5,
+							)
+								.map(
+									(item, idx) => (
+										<Box key={idx}>
+											<Text color='cyan'>
+												{item.branch}
+											</Text>
+											{item.date && (
+												<Box marginLeft={1}>
+													<Text dimColor>
+														({formatRelativeTime(
+															item.date,
+														)})
+													</Text>
+												</Box>
+											)}
+										</Box>
+									),
+								)
+							: gitInfo.unsyncedRemoteBranches.slice(0, 5).map(
+								(branch, idx) => (
+									<Box key={idx}>
+										<Text color='cyan'>{branch}</Text>
+									</Box>
+								),
+							)}
 						{gitInfo.unsyncedRemoteBranches.length > 5 && (
 							<Text dimColor>
 								... and{' '}
