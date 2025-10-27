@@ -462,6 +462,231 @@ export class GitService {
 	}
 
 	/**
+	 * Gets the current changeset (uncommitted changes) details
+	 * @param workingDirectory - Path to Git repository
+	 * @returns Array of changed files with their status
+	 */
+	async getChangeset(
+		workingDirectory: string,
+	): Promise<Array<{ status: string; file: string }>> {
+		try {
+			const command = new Deno.Command('git', {
+				args: ['status', '--porcelain'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await command.output()
+			if (result.success) {
+				const output = new TextDecoder().decode(result.stdout).trim()
+				if (!output) return []
+
+				return output.split('\n').map((line) => {
+					const status = line.substring(0, 2).trim()
+					const file = line.substring(3)
+					return { status, file }
+				})
+			}
+			return []
+		} catch {
+			return []
+		}
+	}
+
+	/**
+	 * Gets the last time the current branch was updated from the main branch
+	 * @param workingDirectory - Path to Git repository
+	 * @param mainBranch - Name of the main branch
+	 * @returns Last merge date or null if not found
+	 */
+	async getLastSyncFromMain(
+		workingDirectory: string,
+		mainBranch: string,
+	): Promise<Date | null> {
+		try {
+			// Get the last commit that exists in both current branch and main
+			const command = new Deno.Command('git', {
+				args: [
+					'log',
+					'--format=%ct',
+					'-1',
+					`${mainBranch}..HEAD`,
+				],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await command.output()
+			if (result.success) {
+				const output = new TextDecoder().decode(result.stdout).trim()
+
+				// If output is empty, current branch is up to date with main
+				if (!output) {
+					// Get the last commit date from main
+					const mainCommand = new Deno.Command('git', {
+						args: ['log', '--format=%ct', '-1', mainBranch],
+						cwd: workingDirectory,
+						stdout: 'piped',
+						stderr: 'piped',
+					})
+					const mainResult = await mainCommand.output()
+					if (mainResult.success) {
+						const timestamp = new TextDecoder().decode(
+							mainResult.stdout,
+						).trim()
+						if (timestamp) {
+							return new Date(parseInt(timestamp) * 1000)
+						}
+					}
+					return null
+				}
+
+				// Get merge base - the common ancestor
+				const mergeBaseCommand = new Deno.Command('git', {
+					args: ['merge-base', mainBranch, 'HEAD'],
+					cwd: workingDirectory,
+					stdout: 'piped',
+					stderr: 'piped',
+				})
+
+				const mergeBaseResult = await mergeBaseCommand.output()
+				if (mergeBaseResult.success) {
+					const mergeBase = new TextDecoder().decode(
+						mergeBaseResult.stdout,
+					).trim()
+
+					// Get the date of the merge base
+					const dateCommand = new Deno.Command('git', {
+						args: ['log', '--format=%ct', '-1', mergeBase],
+						cwd: workingDirectory,
+						stdout: 'piped',
+						stderr: 'piped',
+					})
+
+					const dateResult = await dateCommand.output()
+					if (dateResult.success) {
+						const timestamp = new TextDecoder().decode(
+							dateResult.stdout,
+						).trim()
+						if (timestamp) {
+							return new Date(parseInt(timestamp) * 1000)
+						}
+					}
+				}
+			}
+			return null
+		} catch {
+			return null
+		}
+	}
+
+	/**
+	 * Gets list of remote branches that haven't been synced locally
+	 * @param workingDirectory - Path to Git repository
+	 * @returns Array of remote branch names
+	 */
+	async getUnsyncedRemoteBranches(
+		workingDirectory: string,
+	): Promise<string[]> {
+		try {
+			// First fetch remote refs
+			const fetchCommand = new Deno.Command('git', {
+				args: ['fetch', '--prune'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+			await fetchCommand.output()
+
+			// Get all remote branches
+			const remoteBranchesCommand = new Deno.Command('git', {
+				args: ['branch', '-r', '--format=%(refname:short)'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const remoteBranchesResult = await remoteBranchesCommand.output()
+			if (!remoteBranchesResult.success) return []
+
+			const remoteBranches = new TextDecoder().decode(
+				remoteBranchesResult.stdout,
+			)
+				.trim()
+				.split('\n')
+				.filter((branch) => branch && !branch.includes('HEAD'))
+
+			// Get all local branches
+			const localBranchesCommand = new Deno.Command('git', {
+				args: ['branch', '--format=%(refname:short)'],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const localBranchesResult = await localBranchesCommand.output()
+			if (!localBranchesResult.success) return remoteBranches
+
+			const localBranches = new TextDecoder().decode(
+				localBranchesResult.stdout,
+			)
+				.trim()
+				.split('\n')
+				.filter((branch) => branch)
+
+			// Find remote branches that don't have local equivalents
+			const unsyncedBranches = remoteBranches.filter((remoteBranch) => {
+				// Remove origin/ prefix
+				const branchName = remoteBranch.replace(/^origin\//, '')
+				return !localBranches.includes(branchName)
+			})
+
+			return unsyncedBranches
+		} catch {
+			return []
+		}
+	}
+
+	/**
+	 * Gets the number of commits ahead/behind from the main branch
+	 * @param workingDirectory - Path to Git repository
+	 * @param mainBranch - Name of the main branch
+	 * @returns Object with ahead and behind counts
+	 */
+	async getBranchDivergence(
+		workingDirectory: string,
+		mainBranch: string,
+	): Promise<{ ahead: number; behind: number }> {
+		try {
+			const command = new Deno.Command('git', {
+				args: [
+					'rev-list',
+					'--left-right',
+					'--count',
+					`${mainBranch}...HEAD`,
+				],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await command.output()
+			if (result.success) {
+				const output = new TextDecoder().decode(result.stdout).trim()
+				const [behind, ahead] = output.split('\t').map((n) =>
+					parseInt(n) || 0
+				)
+				return { ahead, behind }
+			}
+			return { ahead: 0, behind: 0 }
+		} catch {
+			return { ahead: 0, behind: 0 }
+		}
+	}
+
+	/**
 	 * Clones a repository to a specified directory
 	 * @param repositoryURL - URL of the Git repository
 	 * @param targetDirectory - Where to clone the repository

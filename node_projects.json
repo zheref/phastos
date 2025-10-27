@@ -98,7 +98,7 @@
 			},
 			"customCommands": [
 				{
-					"alias": "ready",
+					"alias": "Ready",
 					"description": "Complete deployment workflow: clean, update, install, build, and test",
 					"operations": [
 						{

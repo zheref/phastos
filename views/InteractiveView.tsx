@@ -19,8 +19,10 @@ import type {
 	Operation,
 	Project,
 } from '../models/Project.ts'
+import { gitService } from '../services/GitService.ts'
 import { Logger } from '../services/Logger.ts'
 import { CompactLogsView } from './LogsView.tsx'
+import { type ProjectGitInfo, ProjectInfoView } from './ProjectInfoView.tsx'
 
 /**
  * Props for InteractiveView component
@@ -42,6 +44,7 @@ interface MenuItem {
  */
 type ViewState =
 	| 'project-selection'
+	| 'loading-project-info'
 	| 'operation-selection'
 	| 'parameter-input'
 	| 'executing'
@@ -54,6 +57,9 @@ type ViewState =
 const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	const [state, setState] = useState<ViewState>('project-selection')
 	const [selectedProject, setSelectedProject] = useState<Project | null>(
+		null,
+	)
+	const [projectGitInfo, setProjectGitInfo] = useState<ProjectGitInfo | null>(
 		null,
 	)
 	const [currentOperation, setCurrentOperation] = useState<string>('')
@@ -79,12 +85,80 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	}, [selectedProject, logger])
 
 	/**
+	 * Loads git information for a project
+	 */
+	const loadProjectGitInfo = async (project: Project) => {
+		try {
+			const isGitRepo = await gitService.isGitRepository(
+				project.workingDirectory,
+			)
+			if (!isGitRepo) {
+				setProjectGitInfo(null)
+				return
+			}
+
+			// Get main branch
+			const mainBranch = await gitService.getMainBranch(
+				project.workingDirectory,
+				project.configuration.defaultBranch,
+			)
+
+			// Get current branch
+			const currentBranch = await gitService.getCurrentBranch(
+				project.workingDirectory,
+			)
+
+			const isMainBranch = currentBranch === mainBranch
+
+			// Get changeset
+			const changeset = await gitService.getChangeset(
+				project.workingDirectory,
+			)
+
+			// Get divergence (only if not on main branch)
+			let divergence = { ahead: 0, behind: 0 }
+			let lastSyncFromMain = null
+			if (!isMainBranch && mainBranch) {
+				divergence = await gitService.getBranchDivergence(
+					project.workingDirectory,
+					mainBranch,
+				)
+				lastSyncFromMain = await gitService.getLastSyncFromMain(
+					project.workingDirectory,
+					mainBranch,
+				)
+			}
+
+			// Get unsynced remote branches
+			const unsyncedRemoteBranches = await gitService
+				.getUnsyncedRemoteBranches(
+					project.workingDirectory,
+				)
+
+			setProjectGitInfo({
+				currentBranch,
+				isMainBranch,
+				mainBranch,
+				changeset,
+				lastSyncFromMain,
+				unsyncedRemoteBranches,
+				divergence,
+			})
+		} catch (error) {
+			console.error('Error loading git info:', error)
+			setProjectGitInfo(null)
+		}
+	}
+
+	/**
 	 * Handles project selection
 	 */
-	const handleProjectSelect = (item: MenuItem) => {
+	const handleProjectSelect = async (item: MenuItem) => {
 		const project = config.projects.find((p) => p.name === item.value)
 		if (project) {
 			setSelectedProject(project)
+			setState('loading-project-info')
+			await loadProjectGitInfo(project)
 			setState('operation-selection')
 		}
 	}
@@ -245,6 +319,21 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 	}
 
 	/**
+	 * Render loading project info screen
+	 */
+	if (state === 'loading-project-info' && selectedProject) {
+		return (
+			<Box flexDirection='column' padding={1}>
+				<Box marginBottom={1}>
+					<Text bold color='cyan'>
+						<Spinner type='dots' /> Loading project information...
+					</Text>
+				</Box>
+			</Box>
+		)
+	}
+
+	/**
 	 * Render operation selection screen
 	 */
 	if (state === 'operation-selection' && selectedProject) {
@@ -284,13 +373,14 @@ const InteractiveViewComponent = ({ config }: InteractiveViewProps) => {
 
 		return (
 			<Box flexDirection='column' padding={1}>
-				<Box marginBottom={1}>
-					<Text bold color='green'>
-						Project: {selectedProject.name}
-					</Text>
-				</Box>
+				{/* Project Git Information */}
+				<ProjectInfoView
+					projectName={selectedProject.name}
+					gitInfo={projectGitInfo}
+					isLoading={false}
+				/>
 
-				<Box marginBottom={1}>
+				<Box marginBottom={1} marginTop={1}>
 					<Text>Select an operation:</Text>
 				</Box>
 
