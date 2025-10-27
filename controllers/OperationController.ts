@@ -588,6 +588,7 @@ export class OperationController {
 
 	/**
 	 * Switch changeset operation - switch to local changeset or checkout remote branch
+	 * Stashes uncommitted changes before switching to prevent data loss
 	 * @param workingDir - Path to the working directory
 	 * @param parameters - Operation parameters including branchName and branchType
 	 * @returns Operation result
@@ -604,6 +605,38 @@ export class OperationController {
 				success: false,
 				message: 'Branch name is required',
 			}
+		}
+
+		// Check if we have uncommitted changes and stash them
+		this.logger.verbose('Checking for uncommitted changes...')
+		const hasChanges = await gitService.hasUncommittedChanges(workingDir)
+
+		if (hasChanges) {
+			this.logger.verbose('Stashing uncommitted changes...')
+			const currentBranch = await gitService.getCurrentBranch(workingDir)
+			const stashName =
+				`auto-stash-before-switch-${currentBranch}-${Date.now()}`
+
+			const stashResult = await gitService.saveChanges(
+				workingDir,
+				'stash',
+				stashName,
+				undefined,
+				this.logger,
+			)
+
+			if (!stashResult.success) {
+				this.logger.error('Failed to stash changes before switching')
+				return {
+					success: false,
+					message: 'Failed to stash uncommitted changes',
+					error: stashResult.error,
+				}
+			}
+
+			this.logger.log(`Changes stashed as: ${stashName}`)
+		} else {
+			this.logger.verbose('Working directory is clean')
 		}
 
 		const branchType = parameters.branchType || 'local'
@@ -627,21 +660,17 @@ export class OperationController {
 			}
 		} else {
 			// Checkout remote branch as new local changeset
+			// Always follow the pattern: changeset/${remoteBranchName}
 			const remoteBranch = parameters.branchName
-			const branchNameWithoutOrigin = remoteBranch.replace(
-				/^origin\//,
-				'',
-			)
 
-			// Use custom local name if provided, otherwise create changeset/ branch
-			let localBranchName = parameters.localChangesetName
-			if (!localBranchName) {
-				// Add changeset/ prefix if not already there
-				localBranchName =
-					branchNameWithoutOrigin.startsWith('changeset/')
-						? branchNameWithoutOrigin
-						: `changeset/${branchNameWithoutOrigin}`
-			}
+			// Remove origin/ prefix
+			let branchName = remoteBranch.replace(/^origin\//, '')
+
+			// Remove any existing changeset/ prefix to avoid double prefixing
+			branchName = branchName.replace(/^changeset\//, '')
+
+			// Always create with changeset/ prefix
+			const localBranchName = `changeset/${branchName}`
 
 			this.logger.verbose(
 				`Checking out remote branch ${remoteBranch} as ${localBranchName}`,
