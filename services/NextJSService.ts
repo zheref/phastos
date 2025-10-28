@@ -4,6 +4,7 @@
  * Supports building, running dev server, testing, and maintenance operations
  */
 
+import { logCommand } from '../utils/commandLogger.ts'
 import type { Logger } from './Logger.ts'
 import type {
 	PackageManager,
@@ -160,11 +161,21 @@ export class NextJSService implements ToolchainService {
 	): Promise<ToolchainOperationResult> {
 		try {
 			const pm = await this.detectPackageManager(workingDirectory)
+			const args = ['run', 'dev']
+
+			// Log the command being executed
+			if (this.logger) {
+				logCommand(this.logger, pm, args, workingDirectory)
+				this.logger.info(
+					'Dev server starting... Output will stream below.',
+				)
+			}
+
 			const command = new Deno.Command(pm, {
-				args: ['run', 'dev'],
+				args,
 				cwd: workingDirectory,
-				stdout: 'piped',
-				stderr: 'piped',
+				stdout: 'inherit', // Stream output directly to terminal
+				stderr: 'inherit', // Stream errors directly to terminal
 			})
 
 			const result = await command.output()
@@ -175,8 +186,8 @@ export class NextJSService implements ToolchainService {
 					output: 'Next.js dev server started',
 				}
 			} else {
-				const error = new TextDecoder().decode(result.stderr)
-				return { success: false, error }
+				// For inherit mode, we don't get stderr in result
+				return { success: false, error: 'Dev server failed to start' }
 			}
 		} catch (error) {
 			return {

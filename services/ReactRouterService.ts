@@ -191,13 +191,16 @@ export class ReactRouterService implements ToolchainService {
 			// Log the command being executed
 			if (this.logger) {
 				logCommand(this.logger, pm, args, workingDirectory)
+				this.logger.info(
+					'Dev server starting... Output will stream below.',
+				)
 			}
 
 			const command = new Deno.Command(pm, {
 				args,
 				cwd: workingDirectory,
-				stdout: 'piped',
-				stderr: 'piped',
+				stdout: 'inherit', // Stream output directly to terminal
+				stderr: 'inherit', // Stream errors directly to terminal
 			})
 
 			const result = await command.output()
@@ -208,8 +211,8 @@ export class ReactRouterService implements ToolchainService {
 					output: 'React Router dev server started',
 				}
 			} else {
-				const error = new TextDecoder().decode(result.stderr)
-				return { success: false, error }
+				// For inherit mode, we don't get stderr in result, so check status
+				return { success: false, error: 'Dev server failed to start' }
 			}
 		} catch (error) {
 			return {
