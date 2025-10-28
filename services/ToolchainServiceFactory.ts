@@ -6,6 +6,7 @@
 import type { Toolchain } from '../types/Toolchain.ts'
 import { nextJSService } from './NextJSService.ts'
 import { reactNativeService } from './ReactNativeService.ts'
+import { reactRouterService } from './ReactRouterService.ts'
 import type { ToolchainService } from './ToolchainService.ts'
 import { viteService } from './ViteService.ts'
 
@@ -24,6 +25,8 @@ export class ToolchainServiceFactory {
 				return viteService
 			case 'nextjs':
 				return nextJSService
+			case 'react-router':
+				return reactRouterService
 			case 'react-native':
 			default:
 				return reactNativeService

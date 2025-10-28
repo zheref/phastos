@@ -1,6 +1,6 @@
 /**
- * ViteService
- * Handles all Vite-based React web project operations
+ * ReactRouterService
+ * Handles all React Router v7 project operations
  * Supports building, running dev server, testing, and maintenance operations
  */
 
@@ -13,9 +13,9 @@ import type {
 } from './ToolchainService.ts'
 
 /**
- * Service class for Vite operations
+ * Service class for React Router v7 operations
  */
-export class ViteService implements ToolchainService {
+export class ReactRouterService implements ToolchainService {
 	private logger?: Logger
 
 	/**
@@ -24,6 +24,7 @@ export class ViteService implements ToolchainService {
 	setLogger(logger: Logger): void {
 		this.logger = logger
 	}
+
 	/**
 	 * Detects the package manager used in a project
 	 * @param workingDirectory - Path to project
@@ -108,7 +109,7 @@ export class ViteService implements ToolchainService {
 	}
 
 	/**
-	 * Builds the Vite project
+	 * Builds the React Router v7 project
 	 * @param workingDirectory - Path to project
 	 * @param mode - Build mode (development or production)
 	 * @returns Operation result
@@ -120,10 +121,13 @@ export class ViteService implements ToolchainService {
 	): Promise<ToolchainOperationResult> {
 		try {
 			const pm = await this.detectPackageManager(workingDirectory)
-
 			const args = ['run', 'build']
+
+			// React Router v7 doesn't use --mode flag, it detects production/development from env
+			// We can pass NODE_ENV instead
 			if (mode === 'development') {
-				args.push('--mode', 'development')
+				// For dev builds, we might want to skip optimizations
+				// But React Router's build is primarily for production
 			}
 
 			// Log the command being executed
@@ -150,7 +154,7 @@ export class ViteService implements ToolchainService {
 				}
 				return {
 					success: true,
-					output: `Vite build completed in ${mode} mode`,
+					output: `React Router build completed in ${mode} mode`,
 				}
 			} else {
 				if (this.logger) {
@@ -170,11 +174,8 @@ export class ViteService implements ToolchainService {
 	}
 
 	/**
-	 * Runs the Vite dev server
+	 * Runs the React Router dev server
 	 * @param workingDirectory - Path to project
-	 * @param _platform - Not used for Vite (web only)
-	 * @param _device - Not used for Vite (web only)
-	 * @param _mode - Not used for Vite (always dev mode)
 	 * @returns Operation result
 	 */
 	async run(
@@ -204,7 +205,7 @@ export class ViteService implements ToolchainService {
 			if (result.success) {
 				return {
 					success: true,
-					output: 'Vite dev server started',
+					output: 'React Router dev server started',
 				}
 			} else {
 				const error = new TextDecoder().decode(result.stderr)
@@ -278,7 +279,7 @@ export class ViteService implements ToolchainService {
 	}
 
 	/**
-	 * Resets Vite cache
+	 * Resets React Router cache
 	 * @param workingDirectory - Path to project
 	 * @returns Operation result
 	 */
@@ -286,8 +287,16 @@ export class ViteService implements ToolchainService {
 		workingDirectory: string,
 	): Promise<ToolchainOperationResult> {
 		try {
-			// Remove Vite cache directory
-			const cacheDir = `${workingDirectory}/node_modules/.vite`
+			// Remove React Router build directory
+			const buildDir = `${workingDirectory}/build`
+			try {
+				await Deno.remove(buildDir, { recursive: true })
+			} catch {
+				// Directory might not exist, continue
+			}
+
+			// Remove React Router cache directory
+			const cacheDir = `${workingDirectory}/.react-router`
 			try {
 				await Deno.remove(cacheDir, { recursive: true })
 			} catch {
@@ -296,7 +305,7 @@ export class ViteService implements ToolchainService {
 
 			return {
 				success: true,
-				output: 'Vite cache cleared',
+				output: 'React Router cache cleared',
 			}
 		} catch (error) {
 			return {
@@ -319,8 +328,8 @@ export class ViteService implements ToolchainService {
 			// Directories to remove
 			const dirsToRemove = [
 				'node_modules',
-				'dist',
-				'.vite',
+				'build',
+				'.react-router',
 				'.cache',
 			]
 
@@ -468,6 +477,6 @@ export class ViteService implements ToolchainService {
 }
 
 /**
- * Singleton instance of ViteService
+ * Singleton instance of ReactRouterService
  */
-export const viteService = new ViteService()
+export const reactRouterService = new ReactRouterService()

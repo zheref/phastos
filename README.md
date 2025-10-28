@@ -2,7 +2,7 @@
 
 **A powerful CLI for managing React Native and React web projects with interactive workflows**
 
-Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Phastos brings the same seamless workflow automation to React Native and web development. Manage multiple projects, execute complex build sequences, and streamline your development process with beautiful interactive interfaces. Now supports React Native mobile apps, Vite-based web projects, and Next.js applications.
+Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Phastos brings the same seamless workflow automation to React Native and web development. Manage multiple projects, execute complex build sequences, and streamline your development process with beautiful interactive interfaces. Now supports React Native mobile apps, Vite-based web projects, Next.js applications, and React Router v7 projects.
 
 > _"In the vast cosmos of code, every project is eternal"_
 
@@ -16,7 +16,7 @@ Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Ph
 - 🏗️ **MVC Architecture** - Clean, testable code structure inspired by ExpressJS
 - ⚡ **Fast & Lightweight** - Built with Deno for optimal performance
 - 🎨 **Beautiful UI** - Powered by Ink for modern terminal interfaces
-- 🌐 **Multi-Toolchain Support** - React Native (iOS/Android), Vite web apps, Next.js
+- 🌐 **Multi-Toolchain Support** - React Native (iOS/Android), Vite web apps, Next.js, React Router v7
 
 ## Installation
 
@@ -24,7 +24,7 @@ Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Ph
 
 - [Deno](https://deno.land/) 1.40+ installed
 - For React Native: React Native development environment set up
-- For Web projects: Node.js 16+ and your chosen framework (Vite or Next.js)
+- For Web projects: Node.js 16+ and your chosen framework (Vite, Next.js, or React Router v7)
 - Git (for repository operations)
 
 ### Install Globally
@@ -108,6 +108,19 @@ This creates a configuration file with a sample project. Edit `node_projects.jso
 }
 ```
 
+**React Router v7 Project:**
+
+```json
+{
+	"name": "MyReactRouterApp",
+	"workingDirectory": "./my-react-router-app",
+	"configuration": {
+		"toolchain": "react-router",
+		"packageManager": "npm"
+	}
+}
+```
+
 ### 2. Interactive Mode
 
 Launch interactive mode to visually select projects and operations:
@@ -172,6 +185,12 @@ Phastos provides these built-in operations that work across all supported toolch
 - `build`: Creates optimized production build
 - `run`: Starts Next.js development server
 - `test`: Runs test suite with Jest/Vitest
+
+**React Router v7:**
+
+- `build`: Creates production build using React Router build system
+- `run`: Starts React Router development server
+- `test`: Runs test suite with Vitest
 
 ## Custom Commands
 

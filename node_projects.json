@@ -95,7 +95,7 @@
 				"defaultBranch": "main",
 				"savePreference": "stash",
 				"packageManager": "npm",
-				"toolchain": "vite",
+				"toolchain": "react-router",
 				"defaultPlatform": "ios"
 			},
 			"customCommands": [
@@ -119,7 +119,7 @@
 							"type": "build",
 							"description": "Build the project",
 							"parameters": {
-								"platform": "both"
+								"mode": "production"
 							}
 						},
 						{
@@ -127,11 +127,8 @@
 							"description": "Run tests"
 						},
 						{
-							"type": "run_script",
-							"description": "Run for development and debugging",
-							"parameters": {
-								"scriptName": "dev:start"
-							}
+							"type": "run",
+							"description": "Run for development and debugging"
 						}
 					]
 				}
