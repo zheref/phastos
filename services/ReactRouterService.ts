@@ -233,7 +233,7 @@ export class ReactRouterService implements ToolchainService {
 	): Promise<ToolchainOperationResult> {
 		try {
 			const pm = await this.detectPackageManager(workingDirectory)
-			const args = ['test', '--run']
+			const args = ['test'] // React Router uses standard npm test
 
 			if (testFile) {
 				args.push(testFile)
@@ -265,6 +265,19 @@ export class ReactRouterService implements ToolchainService {
 					output: 'Tests completed successfully',
 				}
 			} else {
+				// Check if the error is about missing script
+				if (stderr.includes('Missing script')) {
+					if (this.logger) {
+						this.logger.warning(
+							'Test script not found in package.json - skipping tests',
+						)
+					}
+					return {
+						success: true,
+						output: 'No test script found - skipping',
+					}
+				}
+
 				if (this.logger) {
 					this.logger.error(`Tests failed: ${stderr}`)
 				}
