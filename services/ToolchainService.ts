@@ -5,6 +5,7 @@
  */
 
 import type { Platform } from '../types/Platform.ts'
+import type { Logger } from './Logger.ts'
 
 /**
  * Result object for toolchain operations
@@ -24,6 +25,11 @@ export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun' | 'deno'
  * Abstract interface for toolchain-specific operations
  */
 export interface ToolchainService {
+	/**
+	 * Sets the logger instance for command logging
+	 */
+	setLogger(logger: Logger): void
+
 	/**
 	 * Detects the package manager used in a project
 	 */

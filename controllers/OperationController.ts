@@ -49,6 +49,15 @@ export class OperationController {
 	}
 
 	/**
+	 * Injects logger into toolchain service if it supports it
+	 */
+	private injectLogger(service: any): void {
+		if (service && typeof service.setLogger === 'function') {
+			service.setLogger(this.logger)
+		}
+	}
+
+	/**
 	 * Executes a single operation on a project
 	 * @param operation - Operation to execute
 	 * @param project - Target project
@@ -328,6 +337,7 @@ export class OperationController {
 		const service = ToolchainServiceFactory.getService(
 			project?.configuration.toolchain,
 		)
+		this.injectLogger(service)
 		const pm = parameters.packageManager || 'npm'
 		this.logger.verbose(`Installing dependencies using ${pm}...`)
 
@@ -354,6 +364,8 @@ export class OperationController {
 		const service = ToolchainServiceFactory.getService(
 			project?.configuration.toolchain,
 		)
+		this.injectLogger(service)
+
 		const platform = parameters.platform ||
 			project?.configuration.defaultPlatform || 'ios'
 		const mode = parameters.mode || 'debug'
@@ -385,6 +397,7 @@ export class OperationController {
 		const service = ToolchainServiceFactory.getService(
 			project?.configuration.toolchain,
 		)
+		this.injectLogger(service)
 		this.logger.verbose('Running tests...')
 		if (parameters.testFile) {
 			this.logger.verbose(`Test file: ${parameters.testFile}`)
@@ -417,6 +430,7 @@ export class OperationController {
 		const service = ToolchainServiceFactory.getService(
 			project.configuration.toolchain,
 		)
+		this.injectLogger(service)
 		const platform = parameters.platform ||
 			project.configuration.defaultPlatform || 'ios'
 		const device = parameters.device || project.configuration.defaultDevice
@@ -454,6 +468,7 @@ export class OperationController {
 		const service = ToolchainServiceFactory.getService(
 			project?.configuration.toolchain,
 		)
+		this.injectLogger(service)
 		const toolchain = project?.configuration.toolchain || 'react-native'
 		this.logger.verbose(`Resetting ${toolchain} cache...`)
 
@@ -750,6 +765,7 @@ export class OperationController {
 		const service = ToolchainServiceFactory.getService(
 			project?.configuration.toolchain,
 		)
+		this.injectLogger(service)
 		this.logger.verbose(`Running script: ${parameters.scriptName}`)
 		if (parameters.packageManager) {
 			this.logger.verbose(
@@ -790,6 +806,7 @@ export class OperationController {
 		const service = ToolchainServiceFactory.getService(
 			project?.configuration.toolchain,
 		)
+		this.injectLogger(service)
 		const customWorkingDir = parameters.workingDirectory || workingDir
 
 		this.logger.verbose(`Executing custom command: ${parameters.command}`)

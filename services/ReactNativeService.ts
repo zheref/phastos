@@ -5,6 +5,7 @@
  */
 
 import type { Platform } from '../models/Project.ts'
+import type { Logger } from './Logger.ts'
 import type {
 	PackageManager,
 	ToolchainOperationResult,
@@ -25,6 +26,14 @@ export interface RNOperationResult {
  * Service class for React Native operations
  */
 export class ReactNativeService implements ToolchainService {
+	private logger?: Logger
+
+	/**
+	 * Sets the logger instance for command logging
+	 */
+	setLogger(logger: Logger): void {
+		this.logger = logger
+	}
 	/**
 	 * Detects the package manager used in a project
 	 * @param workingDirectory - Path to project

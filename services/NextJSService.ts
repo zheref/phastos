@@ -4,6 +4,7 @@
  * Supports building, running dev server, testing, and maintenance operations
  */
 
+import type { Logger } from './Logger.ts'
 import type {
 	PackageManager,
 	ToolchainOperationResult,
@@ -14,6 +15,14 @@ import type {
  * Service class for Next.js operations
  */
 export class NextJSService implements ToolchainService {
+	private logger?: Logger
+
+	/**
+	 * Sets the logger instance for command logging
+	 */
+	setLogger(logger: Logger): void {
+		this.logger = logger
+	}
 	/**
 	 * Detects the package manager used in a project
 	 * @param workingDirectory - Path to project

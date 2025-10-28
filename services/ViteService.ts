@@ -4,6 +4,8 @@
  * Supports building, running dev server, testing, and maintenance operations
  */
 
+import { logCommand } from '../utils/commandLogger.ts'
+import type { Logger } from './Logger.ts'
 import type {
 	PackageManager,
 	ToolchainOperationResult,
@@ -14,6 +16,14 @@ import type {
  * Service class for Vite operations
  */
 export class ViteService implements ToolchainService {
+	private logger?: Logger
+
+	/**
+	 * Sets the logger instance for command logging
+	 */
+	setLogger(logger: Logger): void {
+		this.logger = logger
+	}
 	/**
 	 * Detects the package manager used in a project
 	 * @param workingDirectory - Path to project
@@ -64,8 +74,15 @@ export class ViteService implements ToolchainService {
 			const pm = packageManager ||
 				(await this.detectPackageManager(workingDirectory))
 
+			const args = ['install']
+
+			// Log the command being executed
+			if (this.logger) {
+				logCommand(this.logger, pm, args, workingDirectory)
+			}
+
 			const command = new Deno.Command(pm, {
-				args: ['install'],
+				args,
 				cwd: workingDirectory,
 				stdout: 'piped',
 				stderr: 'piped',
@@ -107,6 +124,11 @@ export class ViteService implements ToolchainService {
 			const args = ['run', 'build']
 			if (mode === 'development') {
 				args.push('--mode', 'development')
+			}
+
+			// Log the command being executed
+			if (this.logger) {
+				logCommand(this.logger, pm, args, workingDirectory)
 			}
 
 			const command = new Deno.Command(pm, {
@@ -151,8 +173,15 @@ export class ViteService implements ToolchainService {
 	): Promise<ToolchainOperationResult> {
 		try {
 			const pm = await this.detectPackageManager(workingDirectory)
+			const args = ['run', 'dev']
+
+			// Log the command being executed
+			if (this.logger) {
+				logCommand(this.logger, pm, args, workingDirectory)
+			}
+
 			const command = new Deno.Command(pm, {
-				args: ['run', 'dev'],
+				args,
 				cwd: workingDirectory,
 				stdout: 'piped',
 				stderr: 'piped',
@@ -343,6 +372,11 @@ export class ViteService implements ToolchainService {
 					}
 			}
 
+			// Log the command being executed
+			if (this.logger) {
+				logCommand(this.logger, command, args, workingDirectory)
+			}
+
 			const cmd = new Deno.Command(command, {
 				args,
 				cwd: workingDirectory,
@@ -382,6 +416,11 @@ export class ViteService implements ToolchainService {
 		workingDirectory: string,
 	): Promise<ToolchainOperationResult> {
 		try {
+			// Log the command being executed
+			if (this.logger) {
+				logCommand(this.logger, 'sh', ['-c', command], workingDirectory)
+			}
+
 			const cmd = new Deno.Command('sh', {
 				args: ['-c', command],
 				cwd: workingDirectory,
