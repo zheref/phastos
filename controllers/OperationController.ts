@@ -13,6 +13,7 @@ import type {
 import { gitService } from '../services/GitService.ts'
 import { Logger } from '../services/Logger.ts'
 import { reactNativeService } from '../services/ReactNativeService.ts'
+import { ToolchainServiceFactory } from '../services/ToolchainServiceFactory.ts'
 
 /**
  * Result of an operation execution
@@ -100,27 +101,27 @@ export class OperationController {
 					break
 
 				case 'install':
-					result = await this.install(workingDir, parameters)
+					result = await this.install(workingDir, parameters, project)
 					break
 
 				case 'build':
-					result = await this.build(workingDir, parameters)
+					result = await this.build(workingDir, parameters, project)
 					break
 
 				case 'test':
-					result = await this.test(workingDir, parameters)
+					result = await this.test(workingDir, parameters, project)
 					break
 
 				case 'run':
 					result = await this.run(
 						workingDir,
-						project.configuration,
+						project,
 						parameters,
 					)
 					break
 
 				case 'reset':
-					result = await this.reset(workingDir)
+					result = await this.reset(workingDir, project)
 					break
 
 				case 'pod_install':
@@ -128,11 +129,15 @@ export class OperationController {
 					break
 
 				case 'run_script':
-					result = await this.runScript(workingDir, parameters)
+					result = await this.runScript(
+						workingDir,
+						parameters,
+						project,
+					)
 					break
 
 				case 'custom':
-					result = await this.custom(workingDir, parameters)
+					result = await this.custom(workingDir, parameters, project)
 					break
 
 				default:
@@ -318,11 +323,15 @@ export class OperationController {
 	private async install(
 		workingDir: string,
 		parameters: OperationParameters,
+		project?: Project,
 	): Promise<OperationResult> {
+		const service = ToolchainServiceFactory.getService(
+			project?.configuration.toolchain,
+		)
 		const pm = parameters.packageManager || 'npm'
 		this.logger.verbose(`Installing dependencies using ${pm}...`)
 
-		const result = await reactNativeService.install(
+		const result = await service.install(
 			workingDir,
 			parameters.packageManager,
 		)
@@ -340,16 +349,22 @@ export class OperationController {
 	private async build(
 		workingDir: string,
 		parameters: OperationParameters,
+		project?: Project,
 	): Promise<OperationResult> {
-		const platform = parameters.platform || 'ios'
+		const service = ToolchainServiceFactory.getService(
+			project?.configuration.toolchain,
+		)
+		const platform = parameters.platform ||
+			project?.configuration.defaultPlatform || 'ios'
 		const mode = parameters.mode || 'debug'
 
 		this.logger.verbose(`Building for ${platform} in ${mode} mode...`)
 
-		const result = await reactNativeService.build(
+		const buildMode = mode === 'release' ? 'production' : 'development'
+		const result = await service.build(
 			workingDir,
+			buildMode,
 			platform as Platform,
-			mode,
 		)
 
 		return {
@@ -365,7 +380,11 @@ export class OperationController {
 	private async test(
 		workingDir: string,
 		parameters: OperationParameters,
+		project?: Project,
 	): Promise<OperationResult> {
+		const service = ToolchainServiceFactory.getService(
+			project?.configuration.toolchain,
+		)
 		this.logger.verbose('Running tests...')
 		if (parameters.testFile) {
 			this.logger.verbose(`Test file: ${parameters.testFile}`)
@@ -374,7 +393,7 @@ export class OperationController {
 			this.logger.verbose('Coverage enabled')
 		}
 
-		const result = await reactNativeService.test(
+		const result = await service.test(
 			workingDir,
 			parameters.testFile,
 			parameters.coverage,
@@ -388,15 +407,19 @@ export class OperationController {
 	}
 
 	/**
-	 * Run operation - run the app on simulator/emulator
+	 * Run operation - run the app on simulator/emulator or dev server
 	 */
 	private async run(
 		workingDir: string,
-		config: Project['configuration'],
+		project: Project,
 		parameters: OperationParameters,
 	): Promise<OperationResult> {
-		const platform = parameters.platform || config.defaultPlatform || 'ios'
-		const device = parameters.device || config.defaultDevice
+		const service = ToolchainServiceFactory.getService(
+			project.configuration.toolchain,
+		)
+		const platform = parameters.platform ||
+			project.configuration.defaultPlatform || 'ios'
+		const device = parameters.device || project.configuration.defaultDevice
 		const mode = parameters.mode || 'debug'
 
 		this.logger.verbose(
@@ -405,11 +428,13 @@ export class OperationController {
 			} in ${mode} mode...`,
 		)
 
-		const result = await reactNativeService.run(
+		// For web projects (Vite/Next.js), use appropriate run method
+		const runMode = mode === 'release' ? 'production' : 'development'
+		const result = await service.run(
 			workingDir,
 			platform as Platform,
 			device,
-			mode,
+			runMode,
 		)
 
 		return {
@@ -420,12 +445,19 @@ export class OperationController {
 	}
 
 	/**
-	 * Reset operation - reset React Native cache
+	 * Reset operation - reset project cache
 	 */
-	private async reset(workingDir: string): Promise<OperationResult> {
-		this.logger.verbose('Resetting React Native cache...')
+	private async reset(
+		workingDir: string,
+		project?: Project,
+	): Promise<OperationResult> {
+		const service = ToolchainServiceFactory.getService(
+			project?.configuration.toolchain,
+		)
+		const toolchain = project?.configuration.toolchain || 'react-native'
+		this.logger.verbose(`Resetting ${toolchain} cache...`)
 
-		const result = await reactNativeService.reset(workingDir)
+		const result = await service.reset(workingDir)
 
 		return {
 			success: result.success,
@@ -702,6 +734,7 @@ export class OperationController {
 	private async runScript(
 		workingDir: string,
 		parameters: OperationParameters,
+		project?: Project,
 	): Promise<OperationResult> {
 		if (!parameters.scriptName) {
 			this.logger.warning(
@@ -714,6 +747,9 @@ export class OperationController {
 			}
 		}
 
+		const service = ToolchainServiceFactory.getService(
+			project?.configuration.toolchain,
+		)
 		this.logger.verbose(`Running script: ${parameters.scriptName}`)
 		if (parameters.packageManager) {
 			this.logger.verbose(
@@ -721,7 +757,7 @@ export class OperationController {
 			)
 		}
 
-		const result = await reactNativeService.runScript(
+		const result = await service.runScript(
 			workingDir,
 			parameters.scriptName,
 			parameters.packageManager,
@@ -741,6 +777,7 @@ export class OperationController {
 	private async custom(
 		workingDir: string,
 		parameters: OperationParameters,
+		project?: Project,
 	): Promise<OperationResult> {
 		if (!parameters.command) {
 			this.logger.warning('Custom command requires a "command" parameter')
@@ -750,6 +787,9 @@ export class OperationController {
 			}
 		}
 
+		const service = ToolchainServiceFactory.getService(
+			project?.configuration.toolchain,
+		)
 		const customWorkingDir = parameters.workingDirectory || workingDir
 
 		this.logger.verbose(`Executing custom command: ${parameters.command}`)
@@ -757,7 +797,7 @@ export class OperationController {
 			this.logger.verbose(`Working directory: ${customWorkingDir}`)
 		}
 
-		const result = await reactNativeService.executeCustomCommand(
+		const result = await service.executeCustomCommand(
 			parameters.command,
 			customWorkingDir,
 		)

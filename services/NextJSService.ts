@@ -1,10 +1,9 @@
 /**
- * ReactNativeService
- * Handles all React Native-specific operations
- * Supports iOS, Android, building, running, testing, and maintenance operations
+ * NextJSService
+ * Handles all Next.js React web project operations
+ * Supports building, running dev server, testing, and maintenance operations
  */
 
-import type { Platform } from '../models/Project.ts'
 import type {
 	PackageManager,
 	ToolchainOperationResult,
@@ -12,19 +11,9 @@ import type {
 } from './ToolchainService.ts'
 
 /**
- * Result object for React Native operations
- * @deprecated Use ToolchainOperationResult instead
+ * Service class for Next.js operations
  */
-export interface RNOperationResult {
-	success: boolean
-	output?: string
-	error?: string
-}
-
-/**
- * Service class for React Native operations
- */
-export class ReactNativeService implements ToolchainService {
+export class NextJSService implements ToolchainService {
 	/**
 	 * Detects the package manager used in a project
 	 * @param workingDirectory - Path to project
@@ -102,116 +91,26 @@ export class ReactNativeService implements ToolchainService {
 	}
 
 	/**
-	 * Runs pod install for iOS dependencies
-	 * @param workingDirectory - Path to project
-	 * @returns Operation result
-	 */
-	async podInstall(
-		workingDirectory: string,
-	): Promise<ToolchainOperationResult> {
-		try {
-			const iosPath = `${workingDirectory}/ios`
-
-			// Check if iOS directory exists
-			try {
-				await Deno.stat(iosPath)
-			} catch {
-				return {
-					success: false,
-					error: 'iOS directory not found',
-				}
-			}
-
-			const command = new Deno.Command('pod', {
-				args: ['install'],
-				cwd: iosPath,
-				stdout: 'piped',
-				stderr: 'piped',
-			})
-
-			const result = await command.output()
-
-			if (result.success) {
-				return {
-					success: true,
-					output: 'CocoaPods dependencies installed',
-				}
-			} else {
-				const error = new TextDecoder().decode(result.stderr)
-				return { success: false, error }
-			}
-		} catch (error) {
-			return {
-				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
-			}
-		}
-	}
-
-	/**
-	 * Builds the React Native project
+	 * Builds the Next.js project
 	 * @param workingDirectory - Path to project
 	 * @param mode - Build mode (development or production)
-	 * @param platform - Target platform
 	 * @returns Operation result
 	 */
 	async build(
 		workingDirectory: string,
-		mode: 'development' | 'production' = 'development',
-		platform: Platform = 'ios',
+		mode: 'development' | 'production' = 'production',
+		_platform?: import('../types/Platform.ts').Platform,
 	): Promise<ToolchainOperationResult> {
 		try {
-			// Convert development/production to debug/release for React Native
-			const rnMode = mode === 'production' ? 'release' : 'debug'
-
-			const platforms = platform === 'both'
-				? ['ios', 'android']
-				: [platform]
-
-			for (const p of platforms) {
-				const result = await this.buildPlatform(
-					workingDirectory,
-					p as 'ios' | 'android',
-					rnMode,
-				)
-				if (!result.success) {
-					return result
-				}
-			}
-
-			return {
-				success: true,
-				output: `Build completed for ${platform}`,
-			}
-		} catch (error) {
-			return {
-				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
-			}
-		}
-	}
-
-	/**
-	 * Builds for a specific platform
-	 * @param workingDirectory - Path to project
-	 * @param platform - Target platform (ios or android)
-	 * @param mode - Build mode (debug or release)
-	 * @returns Operation result
-	 */
-	private async buildPlatform(
-		workingDirectory: string,
-		platform: 'ios' | 'android',
-		mode: 'debug' | 'release',
-	): Promise<ToolchainOperationResult> {
-		try {
-			const args = ['run-' + platform]
-			if (mode === 'release') {
-				args.push('--configuration', 'Release')
-			}
-
 			const pm = await this.detectPackageManager(workingDirectory)
+
+			const args = ['run', 'build']
+			if (mode === 'development') {
+				args.push('--debug')
+			}
+
 			const command = new Deno.Command(pm, {
-				args: pm === 'npm' ? ['run', ...args] : args,
+				args,
 				cwd: workingDirectory,
 				stdout: 'piped',
 				stderr: 'piped',
@@ -222,7 +121,7 @@ export class ReactNativeService implements ToolchainService {
 			if (result.success) {
 				return {
 					success: true,
-					output: `${platform} build completed`,
+					output: `Next.js build completed in ${mode} mode`,
 				}
 			} else {
 				const error = new TextDecoder().decode(result.stderr)
@@ -237,37 +136,23 @@ export class ReactNativeService implements ToolchainService {
 	}
 
 	/**
-	 * Runs the React Native app on a simulator/emulator
+	 * Runs the Next.js dev server
 	 * @param workingDirectory - Path to project
-	 * @param platform - Target platform
-	 * @param device - Specific device/simulator name
-	 * @param mode - Run mode (development or production)
+	 * @param _platform - Not used for Next.js (web only)
+	 * @param _device - Not used for Next.js (web only)
+	 * @param _mode - Not used for Next.js (always dev mode)
 	 * @returns Operation result
 	 */
 	async run(
 		workingDirectory: string,
-		platform: Platform = 'ios',
-		device?: string,
-		mode: 'development' | 'production' = 'development',
+		_platform?: import('../types/Platform.ts').Platform,
+		_device?: string,
+		_mode?: 'development' | 'production',
 	): Promise<ToolchainOperationResult> {
 		try {
-			// Convert development/production to debug/release for React Native
-			const rnMode = mode === 'production' ? 'release' : 'debug'
-
-			const p = platform === 'both' ? 'ios' : platform
-			const args = [`run-${p}`]
-
-			if (device) {
-				args.push('--simulator', device)
-			}
-
-			if (rnMode === 'release') {
-				args.push('--configuration', 'Release')
-			}
-
 			const pm = await this.detectPackageManager(workingDirectory)
 			const command = new Deno.Command(pm, {
-				args: pm === 'npm' ? ['run', ...args] : args,
+				args: ['run', 'dev'],
 				cwd: workingDirectory,
 				stdout: 'piped',
 				stderr: 'piped',
@@ -278,7 +163,7 @@ export class ReactNativeService implements ToolchainService {
 			if (result.success) {
 				return {
 					success: true,
-					output: `App running on ${p}`,
+					output: 'Next.js dev server started',
 				}
 			} else {
 				const error = new TextDecoder().decode(result.stderr)
@@ -305,7 +190,8 @@ export class ReactNativeService implements ToolchainService {
 		coverage: boolean = false,
 	): Promise<ToolchainOperationResult> {
 		try {
-			const args = ['test']
+			const pm = await this.detectPackageManager(workingDirectory)
+			const args = ['test', '--run']
 
 			if (testFile) {
 				args.push(testFile)
@@ -315,9 +201,8 @@ export class ReactNativeService implements ToolchainService {
 				args.push('--coverage')
 			}
 
-			const pm = await this.detectPackageManager(workingDirectory)
 			const command = new Deno.Command(pm, {
-				args: pm === 'npm' ? ['run', ...args] : args,
+				args,
 				cwd: workingDirectory,
 				stdout: 'piped',
 				stderr: 'piped',
@@ -343,8 +228,7 @@ export class ReactNativeService implements ToolchainService {
 	}
 
 	/**
-	 * Resets React Native cache and dependencies
-	 * This is equivalent to a deep clean operation
+	 * Resets Next.js cache
 	 * @param workingDirectory - Path to project
 	 * @returns Operation result
 	 */
@@ -352,28 +236,17 @@ export class ReactNativeService implements ToolchainService {
 		workingDirectory: string,
 	): Promise<ToolchainOperationResult> {
 		try {
-			const pm = await this.detectPackageManager(workingDirectory)
+			// Remove Next.js cache directory
+			const cacheDir = `${workingDirectory}/.next`
+			try {
+				await Deno.remove(cacheDir, { recursive: true })
+			} catch {
+				// Directory might not exist, continue
+			}
 
-			// Start Metro bundler with reset cache option
-			const command = new Deno.Command(pm, {
-				args: pm === 'npm'
-					? ['run', 'start', '--', '--reset-cache']
-					: ['start', '--reset-cache'],
-				cwd: workingDirectory,
-				stdout: 'piped',
-				stderr: 'piped',
-			})
-
-			const result = await command.output()
-
-			if (result.success) {
-				return {
-					success: true,
-					output: 'React Native cache reset',
-				}
-			} else {
-				const error = new TextDecoder().decode(result.stderr)
-				return { success: false, error }
+			return {
+				success: true,
+				output: 'Next.js cache cleared',
 			}
 		} catch (error) {
 			return {
@@ -396,11 +269,9 @@ export class ReactNativeService implements ToolchainService {
 			// Directories to remove
 			const dirsToRemove = [
 				'node_modules',
-				'ios/build',
-				'ios/Pods',
-				'android/build',
-				'android/app/build',
-				'.gradle',
+				'.next',
+				'out',
+				'.cache',
 			]
 
 			for (const dir of dirsToRemove) {
@@ -415,41 +286,6 @@ export class ReactNativeService implements ToolchainService {
 			return {
 				success: true,
 				output: 'Project cleaned successfully',
-			}
-		} catch (error) {
-			return {
-				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
-			}
-		}
-	}
-
-	/**
-	 * Executes a custom shell command
-	 * @param command - Shell command to execute
-	 * @param workingDirectory - Working directory for command
-	 * @returns Operation result
-	 */
-	async executeCustomCommand(
-		command: string,
-		workingDirectory: string,
-	): Promise<ToolchainOperationResult> {
-		try {
-			const cmd = new Deno.Command('sh', {
-				args: ['-c', command],
-				cwd: workingDirectory,
-				stdout: 'piped',
-				stderr: 'piped',
-			})
-
-			const result = await cmd.output()
-			const output = new TextDecoder().decode(result.stdout)
-
-			if (result.success) {
-				return { success: true, output }
-			} else {
-				const error = new TextDecoder().decode(result.stderr)
-				return { success: false, error }
 			}
 		} catch (error) {
 			return {
@@ -534,9 +370,44 @@ export class ReactNativeService implements ToolchainService {
 			}
 		}
 	}
+
+	/**
+	 * Executes a custom shell command
+	 * @param command - Shell command to execute
+	 * @param workingDirectory - Working directory for command
+	 * @returns Operation result
+	 */
+	async executeCustomCommand(
+		command: string,
+		workingDirectory: string,
+	): Promise<ToolchainOperationResult> {
+		try {
+			const cmd = new Deno.Command('sh', {
+				args: ['-c', command],
+				cwd: workingDirectory,
+				stdout: 'piped',
+				stderr: 'piped',
+			})
+
+			const result = await cmd.output()
+			const output = new TextDecoder().decode(result.stdout)
+
+			if (result.success) {
+				return { success: true, output }
+			} else {
+				const error = new TextDecoder().decode(result.stderr)
+				return { success: false, error }
+			}
+		} catch (error) {
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+			}
+		}
+	}
 }
 
 /**
- * Singleton instance of ReactNativeService
+ * Singleton instance of NextJSService
  */
-export const reactNativeService = new ReactNativeService()
+export const nextJSService = new NextJSService()

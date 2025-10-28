@@ -49,6 +49,7 @@
 				"defaultBranch": "main",
 				"savePreference": "stash",
 				"packageManager": "yarn",
+				"toolchain": "react-native",
 				"defaultPlatform": "ios"
 			},
 			"customCommands": [
@@ -94,12 +95,13 @@
 				"defaultBranch": "main",
 				"savePreference": "stash",
 				"packageManager": "npm",
+				"toolchain": "vite",
 				"defaultPlatform": "ios"
 			},
 			"customCommands": [
 				{
 					"alias": "Ready",
-					"description": "Complete deployment workflow: clean, update, install, build, and test",
+					"description": "Complete deployment workflow: clean, update, install, build, and run",
 					"operations": [
 						{
 							"type": "clean_slate",
@@ -125,8 +127,11 @@
 							"description": "Run tests"
 						},
 						{
-							"type": "run",
-							"description": "Run for development and debugging"
+							"type": "run_script",
+							"description": "Run for development and debugging",
+							"parameters": {
+								"scriptName": "dev:start"
+							}
 						}
 					]
 				}

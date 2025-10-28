@@ -1,8 +1,8 @@
 # Phastos 🚀
 
-**A powerful CLI for managing React Native projects with interactive workflows**
+**A powerful CLI for managing React Native and React web projects with interactive workflows**
 
-Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Phastos brings the same seamless workflow automation to React Native development. Manage multiple projects, execute complex build sequences, and streamline your development process with beautiful interactive interfaces.
+Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Phastos brings the same seamless workflow automation to React Native and web development. Manage multiple projects, execute complex build sequences, and streamline your development process with beautiful interactive interfaces. Now supports React Native mobile apps, Vite-based web projects, and Next.js applications.
 
 > _"In the vast cosmos of code, every project is eternal"_
 
@@ -10,19 +10,21 @@ Inspired by [Alars](https://github.com/zheref/Alars) (Xcode project manager), Ph
 
 - 🎨 **Interactive Mode** - Beautiful terminal UI with project and operation selection
 - 🎯 **Direct Commands** - Quick execution of operations from the command line
-- 📦 **Multi-Project Management** - Configure and manage multiple React Native projects
+- 📦 **Multi-Project Management** - Configure and manage multiple React projects
 - 🔄 **Git Integration** - Built-in support for git workflows (stash, branch, pull)
 - 🛠️ **Custom Workflows** - Define complex operation sequences in node_projects.json
 - 🏗️ **MVC Architecture** - Clean, testable code structure inspired by ExpressJS
 - ⚡ **Fast & Lightweight** - Built with Deno for optimal performance
 - 🎨 **Beautiful UI** - Powered by Ink for modern terminal interfaces
+- 🌐 **Multi-Toolchain Support** - React Native (iOS/Android), Vite web apps, Next.js
 
 ## Installation
 
 ### Prerequisites
 
 - [Deno](https://deno.land/) 1.40+ installed
-- React Native development environment set up
+- For React Native: React Native development environment set up
+- For Web projects: Node.js 16+ and your chosen framework (Vite or Next.js)
 - Git (for repository operations)
 
 ### Install Globally
@@ -54,6 +56,8 @@ phastos init
 
 This creates a configuration file with a sample project. Edit `node_projects.json` to add your projects:
 
+**React Native Project:**
+
 ```json
 {
 	"version": "1.0",
@@ -65,11 +69,42 @@ This creates a configuration file with a sample project. Edit `node_projects.jso
 			"configuration": {
 				"defaultBranch": "main",
 				"savePreference": "stash",
+				"toolchain": "react-native",
 				"packageManager": "npm",
 				"defaultPlatform": "ios"
 			}
 		}
 	]
+}
+```
+
+**Vite React Web Project:**
+
+```json
+{
+	"name": "MyViteApp",
+	"workingDirectory": "./my-vite-app",
+	"configuration": {
+		"defaultBranch": "main",
+		"savePreference": "stash",
+		"toolchain": "vite",
+		"packageManager": "pnpm"
+	}
+}
+```
+
+**Next.js Project:**
+
+```json
+{
+	"name": "MyNextApp",
+	"workingDirectory": "./my-next-app",
+	"configuration": {
+		"defaultBranch": "main",
+		"savePreference": "stash",
+		"toolchain": "nextjs",
+		"packageManager": "npm"
+	}
 }
 ```
 
@@ -102,20 +137,41 @@ phastos --help
 
 ## Core Operations
 
-Phastos provides these built-in operations for React Native projects:
+Phastos provides these built-in operations that work across all supported toolchains:
 
-| Operation     | Description                                         |
-| ------------- | --------------------------------------------------- |
-| `clean_slate` | Discard all uncommitted changes (git reset + clean) |
-| `save`        | Stash or branch uncommitted changes                 |
-| `update`      | Pull latest changes from repository                 |
-| `install`     | Install project dependencies (npm/yarn/pnpm/bun)    |
-| `pod_install` | Install iOS CocoaPods dependencies                  |
-| `build`       | Build the project for iOS/Android                   |
-| `test`        | Run test suite                                      |
-| `run`         | Run app on simulator/emulator                       |
-| `reset`       | Reset React Native Metro bundler cache              |
-| `custom`      | Execute custom shell commands                       |
+| Operation     | Description                                         | React Native            | Vite/Next.js      |
+| ------------- | --------------------------------------------------- | ----------------------- | ----------------- |
+| `clean_slate` | Discard all uncommitted changes (git reset + clean) | ✅                      | ✅                |
+| `save`        | Stash or branch uncommitted changes                 | ✅                      | ✅                |
+| `update`      | Pull latest changes from repository                 | ✅                      | ✅                |
+| `install`     | Install project dependencies                        | ✅                      | ✅                |
+| `build`       | Build the project                                   | ✅ (iOS/Android)        | ✅ (web)          |
+| `test`        | Run test suite                                      | ✅                      | ✅                |
+| `run`         | Run development server                              | ✅ (simulator/emulator) | ✅ (dev server)   |
+| `reset`       | Reset project cache                                 | ✅ (Metro)              | ✅ (Vite/Next.js) |
+| `run_script`  | Run package.json scripts                            | ✅                      | ✅                |
+| `custom`      | Execute custom shell commands                       | ✅                      | ✅                |
+| `pod_install` | Install iOS CocoaPods dependencies (RN only)        | ✅                      | ❌                |
+
+### Platform Support
+
+**React Native:**
+
+- `build`: Compiles for iOS, Android, or both
+- `run`: Launches on iOS simulator or Android emulator
+- `pod_install`: Installs CocoaPods dependencies
+
+**Vite:**
+
+- `build`: Creates production build in `dist/`
+- `run`: Starts development server at `http://localhost:5173`
+- `test`: Runs Vitest test suite
+
+**Next.js:**
+
+- `build`: Creates optimized production build
+- `run`: Starts Next.js development server
+- `test`: Runs test suite with Jest/Vitest
 
 ## Custom Commands
 
@@ -173,13 +229,54 @@ Define complex workflows by chaining operations in `node_projects.json`:
   "configuration": {
     "defaultBranch": string,         // Default git branch (e.g., 'main')
     "savePreference": "stash" | "branch",  // How to save changes
+    "toolchain"?: "react-native" | "vite" | "nextjs",  // Project type
     "packageManager"?: "npm" | "yarn" | "pnpm" | "bun",
-    "defaultPlatform"?: "ios" | "android" | "both",
-    "defaultDevice"?: string,        // Simulator/emulator name
-    "iosScheme"?: string,            // iOS build scheme
-    "androidFlavor"?: string         // Android build variant
+    "defaultPlatform"?: "ios" | "android" | "web" | "both",  // For RN projects
+    "defaultDevice"?: string,        // Simulator/emulator name (RN only)
+    "iosScheme"?: string,            // iOS build scheme (RN only)
+    "androidFlavor"?: string         // Android build variant (RN only)
   },
   "customCommands"?: CustomCommand[]
+}
+```
+
+### Toolchain Examples
+
+**React Native Project:**
+
+```json
+{
+	"name": "MyRNApp",
+	"workingDirectory": "./my-rn-app",
+	"configuration": {
+		"toolchain": "react-native",
+		"defaultPlatform": "ios",
+		"defaultDevice": "iPhone 15 Pro"
+	}
+}
+```
+
+**Vite Project:**
+
+```json
+{
+	"name": "MyViteApp",
+	"workingDirectory": "./my-vite-app",
+	"configuration": {
+		"toolchain": "vite"
+	}
+}
+```
+
+**Next.js Project:**
+
+```json
+{
+	"name": "MyNextApp",
+	"workingDirectory": "./my-next-app",
+	"configuration": {
+		"toolchain": "nextjs"
+	}
 }
 ```
 
